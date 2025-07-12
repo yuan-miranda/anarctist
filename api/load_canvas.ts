@@ -3,8 +3,8 @@ import { createClient } from "@libsql/client";
 import { VercelRequest, VercelResponse } from '@vercel/node';
 
 const client = createClient({
-    url: process.env.TURSO_DB_URL!,
-    authToken: process.env.TURSO_DB_AUTH_TOKEN!
+    url: process.env.TURSO_DATABASE_URL!,
+    authToken: process.env.TURSO_AUTH_TOKEN!
 });
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
