@@ -86,26 +86,39 @@
             img.onload = () => {
                 ctx.clearRect(0, 0, canvas.width, canvas.height);
                 ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
-                saveToLocalStorage(canvas);
+                saveCanvasData(canvas);
             };
         }
 
-        function saveToLocalStorage(canvas) {
+        async function saveCanvasData(canvas) {
             try {
-                localStorage.setItem('anarctist-canvas', canvas.toDataURL());
+                const data = canvas.toDataURL();
+                await fetch('api/save_canvas', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ data })
+                });
             } catch (e) {
+                console.error(e);
             }
         }
 
-        function loadFromLocalStorage(canvas, ctx) {
-            const data = localStorage.getItem('anarctist-canvas');
-            if (data) {
-                const img = new window.Image();
-                img.src = data;
+        async function loadCanvasData(canvas, ctx) {
+            try {
+                const response = await fetch('api/load_canvas');
+                if (!response.ok) return console.error('Failed to load canvas data');
+
+                const data = await response.json();
+                const img = new Image();
+                img.src = data.data;
                 img.onload = () => {
                     ctx.clearRect(0, 0, canvas.width, canvas.height);
                     ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
                 };
+            } catch (e) {
+                console.error(e);
             }
         }
 
@@ -130,14 +143,14 @@
             canvas.addEventListener('mouseup', () => {
                 if (drawing) {
                     drawing = false;
-                    saveToLocalStorage(canvas);
+                    saveCanvasData(canvas);
                 }
             });
 
             canvas.addEventListener('mouseleave', () => {
                 if (drawing) {
                     drawing = false;
-                    saveToLocalStorage(canvas);
+                    saveCanvasData(canvas);
                 }
             });
         }
@@ -175,14 +188,14 @@
             canvas.addEventListener('touchend', () => {
                 if (drawing) {
                     drawing = false;
-                    saveToLocalStorage(canvas);
+                    saveCanvasData(canvas);
                 }
             });
 
             canvas.addEventListener('touchcancel', () => {
                 if (drawing) {
                     drawing = false;
-                    saveToLocalStorage(canvas);
+                    saveCanvasData(canvas);
                 }
             });
         }
@@ -208,12 +221,12 @@
 
             document.getElementById('clearCanvas').addEventListener('click', () => {
                 ctx.clearRect(0, 0, canvas.width, canvas.height);
-                saveToLocalStorage(canvas);
+                saveCanvasData(canvas);
             });
         }
 
 
-        document.addEventListener('DOMContentLoaded', () => {
+        document.addEventListener('DOMContentLoaded', async () => {
             const canvas = document.getElementById('draw-canvas');
             const ctx = canvas.getContext('2d');
             let undoStack = [], redoStack = [];
@@ -224,7 +237,7 @@
             ctx.lineCap = 'round';
 
             resizeCanvas(canvas);
-            loadFromLocalStorage(canvas, ctx);
+            await loadCanvasData(canvas, ctx);
             saveState(canvas, undoStack);
             eventListeners(canvas, ctx, undoStack, redoStack);
         });
