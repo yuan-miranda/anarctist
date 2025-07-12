@@ -1,0 +1,51 @@
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+    font-family: Arial, Helvetica, sans-serif;
+}
+
+html,
+body {
+    width: 100vw;
+    height: 100vh;
+    overflow: hidden;
+}
+
+#canvas-container {
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    transform: translate(-50%, -50%);
+    z-index: 0;
+    cursor: grab;
+    user-select: none;
+}
+
+#draw-canvas {
+    display: block;
+    background: #fff;
+    border: 1px solid #ccc;
+}
+
+#clearCanvas {
+    position: fixed;
+    top: 10px;
+    right: 10px;
+    z-index: 100;
+    padding: 0.8rem;
+    background: #fff;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    cursor: pointer;
+}
+
+h1 {
+    position: fixed;
+    top: 10px;
+    left: 10px;
+    z-index: 100;
+    margin: 1rem;
+    color: #333;
+    user-select: none;
+}
