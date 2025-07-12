@@ -6,6 +6,8 @@ function saveState(canvas, stack, keepRedo = false) {
 
 function restoreState(canvas, ctx, stackFrom, stackTo) {
     if (!stackFrom.length) return;
+    window._canvasLocked = true;
+
     stackTo.push(canvas.toDataURL());
 
     const img = new window.Image();
@@ -13,11 +15,60 @@ function restoreState(canvas, ctx, stackFrom, stackTo) {
     img.onload = () => {
         ctx.clearRect(0, 0, canvas.width, canvas.height);
         ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
-        saveCanvasData(canvas);
+        setTimeout(() => window._canvasLocked = false, 100); // unlock after brief delay
     };
 }
 
+
+
+
+async function sendStrokeToServer(stroke) {
+    try {
+        await fetch('/api/save_stroke', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(stroke)
+        });
+    } catch (e) {
+        console.error('Failed to save stroke', e);
+    }
+}
+
+
+
+async function loadStrokesAndRender(canvas, ctx) {
+    try {
+        const res = await fetch('/api/load_strokes');
+        if (!res.ok) throw new Error('Failed to fetch strokes');
+        const strokes = await res.json();
+
+        for (const stroke of strokes) {
+            ctx.strokeStyle = stroke.color;
+            ctx.lineWidth = stroke.width;
+            ctx.beginPath();
+            const path = stroke.path;
+            if (path.length > 0) {
+                ctx.moveTo(path[0].x, path[0].y);
+                for (let i = 1; i < path.length; i++) {
+                    ctx.lineTo(path[i].x, path[i].y);
+                }
+                ctx.stroke();
+            }
+        }
+    } catch (err) {
+        console.error(err);
+    }
+}
+
+
+
+
+
+
+
+
 async function saveCanvasData(canvas) {
+    return; // Disable auto-saving for now
     try {
         const data = canvas.toDataURL();
         await fetch('/api/save_canvas', {
@@ -33,6 +84,7 @@ async function saveCanvasData(canvas) {
 }
 
 async function loadCanvasData(canvas, ctx) {
+    return; // Disable auto-loading for now
     try {
         const response = await fetch('/api/load_canvas');
         if (!response.ok) return console.error('Failed to load canvas data');
@@ -49,32 +101,47 @@ async function loadCanvasData(canvas, ctx) {
     }
 }
 
-function addMouseEvents(canvas, ctx, undoStack, redoStack) {
-    let drawing = false, lastX = 0, lastY = 0;
+function addMouseEvents(canvas, ctx) {
+    let drawing = false;
     window._canvasDrawing = false;
+    let currentStroke = null;
 
     canvas.addEventListener('mousedown', e => {
         if (e.button !== 0) return;
         drawing = true;
         window._canvasDrawing = true;
-        [lastX, lastY] = [e.offsetX, e.offsetY];
-        saveState(canvas, undoStack);
+        const x = e.offsetX;
+        const y = e.offsetY;
+
+        currentStroke = {
+            color: ctx.strokeStyle,
+            width: ctx.lineWidth,
+            path: [{ x, y }],
+            timestamp: Date.now()
+        };
     });
 
     canvas.addEventListener('mousemove', e => {
         if (!drawing) return;
+
+        const x = e.offsetX;
+        const y = e.offsetY;
+        const last = currentStroke.path[currentStroke.path.length - 1];
+
         ctx.beginPath();
-        ctx.moveTo(lastX, lastY);
-        ctx.lineTo(e.offsetX, e.offsetY);
+        ctx.moveTo(last.x, last.y);
+        ctx.lineTo(x, y);
         ctx.stroke();
-        [lastX, lastY] = [e.offsetX, e.offsetY];
+
+        currentStroke.path.push({ x, y });
     });
 
-    canvas.addEventListener('mouseup', e => {
+    canvas.addEventListener('mouseup', async e => {
         if (drawing && e.button === 0) {
             drawing = false;
             window._canvasDrawing = false;
-            saveCanvasData(canvas);
+            await sendStrokeToServer(currentStroke);
+            currentStroke = null;
         }
     });
 
@@ -85,9 +152,53 @@ function addMouseEvents(canvas, ctx, undoStack, redoStack) {
             saveCanvasData(canvas);
         }
     });
+
+    const container = document.getElementById('canvas-container');
+    let isDragging = false, dragStartX = 0, dragStartY = 0, containerStartX = 0, containerStartY = 0;
+
+    container.addEventListener('mouseenter', () => {
+        if (!isDragging) container.style.cursor = 'crosshair';
+    });
+
+    container.addEventListener('mouseleave', () => {
+        if (!isDragging) container.style.cursor = '';
+    });
+
+    document.addEventListener('mousedown', e => {
+        if (e.button === 2) {
+            isDragging = true;
+            document.body.style.cursor = 'grabbing';
+            container.style.cursor = 'grabbing';
+            dragStartX = e.clientX;
+            dragStartY = e.clientY;
+            const pos = getCanvasPos(container);
+            containerStartX = pos.left;
+            containerStartY = pos.top;
+            document.body.style.userSelect = 'none';
+        }
+    });
+
+    document.addEventListener('mousemove', e => {
+        if (isDragging) {
+            const dx = e.clientX - dragStartX;
+            const dy = e.clientY - dragStartY;
+            container.style.left = (containerStartX + dx) + 'px';
+            container.style.top = (containerStartY + dy) + 'px';
+            container.style.transform = '';
+        }
+    });
+
+    document.addEventListener('mouseup', e => {
+        if (isDragging && e.button === 2) {
+            isDragging = false;
+            document.body.style.cursor = 'grab';
+            container.style.cursor = 'crosshair';
+            document.body.style.userSelect = '';
+        }
+    });
 }
 
-function addTouchEvents(canvas, ctx, undoStack, redoStack) {
+function addTouchEvents(canvas, ctx, undoStack) {
     let drawing = false, lastX = 0, lastY = 0;
 
     canvas.addEventListener('touchstart', e => {
@@ -137,9 +248,9 @@ function addTouchEvents(canvas, ctx, undoStack, redoStack) {
 
 
 function eventListeners(canvas, ctx, undoStack, redoStack) {
-    let drawing = false, lastX = 0, lastY = 0;
-    addMouseEvents(canvas, ctx, undoStack, redoStack);
-    addTouchEvents(canvas, ctx, undoStack, redoStack);
+    let drawing = false;
+    addMouseEvents(canvas, ctx);
+    addTouchEvents(canvas, ctx, undoStack);
 
     window.addEventListener('keydown', e => {
         if (drawing) return;
@@ -156,8 +267,17 @@ function eventListeners(canvas, ctx, undoStack, redoStack) {
         ctx.clearRect(0, 0, canvas.width, canvas.height);
         saveCanvasData(canvas);
     });
+
+    document.addEventListener('contextmenu', e => e.preventDefault());
 }
 
+function getCanvasPos(container) {
+    const style = window.getComputedStyle(container);
+    return {
+        left: parseInt(style.left, 10),
+        top: parseInt(style.top, 10)
+    };
+}
 
 document.addEventListener('DOMContentLoaded', async () => {
     const canvas = document.getElementById('draw-canvas');
@@ -169,63 +289,16 @@ document.addEventListener('DOMContentLoaded', async () => {
     ctx.fillStyle = '#fff';
     ctx.lineCap = 'round';
 
-    const container = document.getElementById('canvas-container');
-    let isDragging = false, dragStartX = 0, dragStartY = 0, containerStartX = 0, containerStartY = 0;
-
-    function getCanvasPos() {
-        const style = window.getComputedStyle(container);
-        return {
-            left: parseInt(style.left, 10),
-            top: parseInt(style.top, 10)
-        };
-    }
-
-    document.addEventListener('contextmenu', e => e.preventDefault());
     document.body.style.cursor = 'grab';
-    container.addEventListener('mouseenter', () => {
-        if (!isDragging) container.style.cursor = 'crosshair';
-    });
-    container.addEventListener('mouseleave', () => {
-        if (!isDragging) container.style.cursor = '';
-    });
-    document.addEventListener('mousedown', e => {
-        if (e.button === 2) {
-            isDragging = true;
-            document.body.style.cursor = 'grabbing';
-            container.style.cursor = 'grabbing';
-            dragStartX = e.clientX;
-            dragStartY = e.clientY;
-            const pos = getCanvasPos();
-            containerStartX = pos.left;
-            containerStartY = pos.top;
-            document.body.style.userSelect = 'none';
-        }
-    });
-    document.addEventListener('mousemove', e => {
-        if (isDragging) {
-            const dx = e.clientX - dragStartX;
-            const dy = e.clientY - dragStartY;
-            container.style.left = (containerStartX + dx) + 'px';
-            container.style.top = (containerStartY + dy) + 'px';
-            container.style.transform = '';
-        }
-    });
-    document.addEventListener('mouseup', e => {
-        if (isDragging && e.button === 2) {
-            isDragging = false;
-            document.body.style.cursor = 'grab';
-            container.style.cursor = 'crosshair';
-            document.body.style.userSelect = '';
-        }
-    });
 
     saveState(canvas, undoStack);
     eventListeners(canvas, ctx, undoStack, redoStack);
 
     // auto-load canvas data every second, but pause while drawing
-    setInterval(async () => {
-        if (!window._canvasDrawing) {
-            await loadCanvasData(canvas, ctx);
+    setInterval(() => {
+        if (!window._canvasDrawing && !window._canvasLocked) {
+            loadStrokesAndRender(canvas, ctx);
         }
     }, 1000);
+
 });

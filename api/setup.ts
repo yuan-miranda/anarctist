@@ -14,11 +14,14 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
     // query sqlite
     await client.execute(`
-        CREATE TABLE IF NOT EXISTS canvas_data (
-            id TEXT PRIMARY KEY,
-            data TEXT NOT NULL,
-            created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+        CREATE TABLE IF NOT EXISTS strokes (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            path TEXT NOT NULL,
+            color TEXT NOT NULL,
+            width INTEGER NOT NULL,
+            timestamp INTEGER NOT NULL
         );
     `);
+
     res.status(200).json({ message: 'Database setup complete' });
 }
