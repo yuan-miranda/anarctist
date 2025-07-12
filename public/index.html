@@ -93,7 +93,7 @@
         async function saveCanvasData(canvas) {
             try {
                 const data = canvas.toDataURL();
-                await fetch('api/save_canvas', {
+                await fetch('/api/save_canvas', {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json'
@@ -107,7 +107,7 @@
 
         async function loadCanvasData(canvas, ctx) {
             try {
-                const response = await fetch('api/load_canvas');
+                const response = await fetch('/api/load_canvas');
                 if (!response.ok) return console.error('Failed to load canvas data');
 
                 const data = await response.json();
@@ -244,14 +244,13 @@
             ctx.lineCap = 'round';
 
             resizeCanvas(canvas);
-            await loadCanvasData(canvas, ctx);
             saveState(canvas, undoStack);
             eventListeners(canvas, ctx, undoStack, redoStack);
 
             // auto-load canvas data every second, but pause while drawing
-            setInterval(() => {
+            setInterval(async () => {
                 if (!window._canvasDrawing) {
-                    loadCanvasData(canvas, ctx);
+                    await loadCanvasData(canvas, ctx);
                 }
             }, 1000);
         });
