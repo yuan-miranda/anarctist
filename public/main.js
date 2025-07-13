@@ -86,6 +86,23 @@ async function deleteCanvasStrokes(id, deleteAll = false) {
     }
 }
 
+function saveCanvasPosition(left, top) {
+    localStorage.setItem('canvasPosition', JSON.stringify({ left, top }));
+}
+
+function loadCanvasPosition() {
+    const pos = localStorage.getItem('canvasPosition');
+    if (pos) {
+        const { left, top } = JSON.parse(pos);
+        const container = document.getElementById('canvas-container');
+        container.style.left = left;
+        container.style.top = top;
+        container.style.transform = '';
+    } else {
+        console.warn('No canvas position found in localStorage');
+    }
+}
+
 function getCanvasPos(container) {
     const style = window.getComputedStyle(container);
     return {
@@ -142,6 +159,7 @@ function addMouseEvents(canvas, ctx, undoStack, redoStack) {
     let drawing = false;
     window._canvasDrawing = false;
 
+    // mouse drawing functionality
     canvas.addEventListener('mousedown', e => {
         if (e.button !== 0) return;
         drawing = true;
@@ -198,6 +216,7 @@ function addMouseEvents(canvas, ctx, undoStack, redoStack) {
         }
     });
 
+    // right-click panning functionality
     const container = document.getElementById('canvas-container');
     let isDragging = false, dragStartX = 0, dragStartY = 0, containerStartX = 0, containerStartY = 0;
 
@@ -235,15 +254,16 @@ function addMouseEvents(canvas, ctx, undoStack, redoStack) {
             document.body.style.cursor = 'grab';
             container.style.cursor = 'crosshair';
             document.body.style.userSelect = '';
+            saveCanvasPosition(container.style.left, container.style.top);
         }
     });
 }
-
 
 function addTouchEvents(canvas, ctx, undoStack, redoStack) {
     let drawing = false, lastX = 0, lastY = 0;
     let currentStroke = null;
 
+    // 1-finger drawing functionality
     canvas.addEventListener('touchstart', e => {
         if (e.touches.length === 1) {
             const rect = canvas.getBoundingClientRect();
@@ -308,59 +328,47 @@ function addTouchEvents(canvas, ctx, undoStack, redoStack) {
         }
     });
 
-    let isPanning = false, panStartX = 0, panStartY = 0, containerStartX = 0, containerStartY = 0;
+    // 2-finger panning functionality
     const container = document.getElementById('canvas-container');
+    let isPanning = false, panStartX = 0, panStartY = 0, containerStartX = 0, containerStartY = 0;
 
-    container.addEventListener('touchstart', e => {
+    document.addEventListener('touchstart', e => {
         if (e.touches.length !== 2) return;
         e.preventDefault();
         isPanning = true;
-        panStartX = (e.touches[0].clientX + e.touches[1].clientX) / 2;
-        panStartY = (e.touches[0].clientY + e.touches[1].clientY) / 2;
-
+        panStartX = e.touches[0].clientX;
+        panStartY = e.touches[0].clientY;
 
         const pos = getCanvasPos(container);
         containerStartX = pos.left;
         containerStartY = pos.top;
-        // document.body.style.cursor = 'grabbing';
-        // container.style.cursor = 'grabbing';
-        // document.body.style.userSelect = 'none';
     }, { passive: false });
 
-    container.addEventListener('touchmove', e => {
+    document.addEventListener('touchmove', e => {
         if (!isPanning || e.touches.length !== 2) return;
         e.preventDefault();
-        const currentX = (e.touches[0].clientX + e.touches[1].clientX) / 2;
-        const currentY = (e.touches[0].clientY + e.touches[1].clientY) / 2;
-        const dx = currentX - panStartX;
-        const dy = currentY - panStartY;
 
+        const dx = e.touches[0].clientX - panStartX;
+        const dy = e.touches[0].clientY - panStartY;
 
         container.style.left = (containerStartX + dx) + 'px';
         container.style.top = (containerStartY + dy) + 'px';
         container.style.transform = '';
-        // document.body.style.cursor = 'grabbing';
-        // container.style.cursor = 'grabbing';
-        // document.body.style.userSelect = 'none';
     }, { passive: false });
 
-    container.addEventListener('touchend', e => {
+    document.addEventListener('touchend', e => {
         if (isPanning && e.touches.length < 2) {
             isPanning = false;
-            // document.body.style.cursor = 'grab';
-            // container.style.cursor = 'crosshair';
-            // document.body.style.userSelect = '';
+            saveCanvasPosition(container.style.left, container.style.top);
         }
-    });
+    }, { passive: false });
 
-    container.addEventListener('touchcancel', () => {
+    document.addEventListener('touchcancel', () => {
         if (isPanning) {
             isPanning = false;
-            // document.body.style.cursor = 'grab';
-            // container.style.cursor = 'crosshair';
-            // document.body.style.userSelect = '';
+            saveCanvasPosition(container.style.left, container.style.top);
         }
-    });
+    }, { passive: false });
 }
 
 
@@ -413,6 +421,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     document.body.style.cursor = 'grab';
 
     eventListeners(canvas, ctx, undoStack, redoStack);
+    loadCanvasPosition();
     await loadCanvasStrokes(canvas, ctx);
 
     let counter = 0;
