@@ -317,7 +317,6 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     document.body.style.cursor = 'grab';
 
-    saveState(canvas, undoStack);
     eventListeners(canvas, ctx, undoStack, redoStack);
 
     // auto-load canvas data every second, but pause while drawing
