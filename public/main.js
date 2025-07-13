@@ -1,4 +1,5 @@
-let saveStrokeTimeout = null;
+const strokeQueue = [];
+let isSaving = false;
 
 function saveStrokeHistory(stroke, undoStack, redoStack, keepRedo = false) {
     if (!keepRedo) redoStack.length = 0;
@@ -10,14 +11,20 @@ function saveStrokeHistory(stroke, undoStack, redoStack, keepRedo = false) {
 }
 
 function scheduleSave(stroke) {
-    if (saveStrokeTimeout) clearTimeout(saveStrokeTimeout);
+    if (!stroke || stroke.path.length <= 1) return;
+    strokeQueue.push(stroke);
+    trySaveQueue();
+}
 
-    saveStrokeTimeout = setTimeout(async () => {
-        if (stroke && stroke.path.length > 1) {
-            await saveCanvasStrokes(stroke);
-        }
-        saveStrokeTimeout = null;
-    }, 500);
+async function trySaveQueue() {
+    if (isSaving || strokeQueue.length === 0) return;
+
+    isSaving = true;
+    while (strokeQueue.length > 0) {
+        const stroke = strokeQueue.shift();
+        await saveCanvasStrokes(stroke);
+    }
+    isSaving = false;
 }
 
 async function saveCanvasData(canvas) {
