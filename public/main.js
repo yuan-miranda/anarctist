@@ -1,3 +1,5 @@
+let saveStrokeTimeout = null;
+
 function saveStrokeHistory(stroke, undoStack, redoStack, keepRedo = false) {
     if (!keepRedo) redoStack.length = 0;
     if (stroke && stroke.path && stroke.path.length > 1) {
@@ -5,7 +7,16 @@ function saveStrokeHistory(stroke, undoStack, redoStack, keepRedo = false) {
         console.log('Saved stroke:', stroke);
         if (undoStack.length > 50) undoStack.shift();
     }
+}
 
+function scheduleSave(stroke) {
+    if (saveStrokeTimeout) clearTimeout(saveStrokeTimeout);
+
+    saveStrokeTimeout = setTimeout(async () => {
+        if (stroke && stroke.path.length > 1) {
+            await saveCanvasStrokes(stroke);
+        }
+    }, 500);
 }
 
 async function saveCanvasData(canvas) {
@@ -157,7 +168,7 @@ function addMouseEvents(canvas, ctx, undoStack, redoStack) {
     });
 
     canvas.addEventListener('mouseup', async e => {
-        if (!drawing) return;
+        if (!drawing || e.button !== 0) return;
 
         drawing = false;
         window._canvasDrawing = false;
@@ -165,7 +176,7 @@ function addMouseEvents(canvas, ctx, undoStack, redoStack) {
         if (currentStroke && currentStroke.path.length >= 1) {
             console.log('mouseup at inside:', e.offsetX, e.offsetY);
             saveStrokeHistory(currentStroke, undoStack, redoStack);
-            await saveCanvasStrokes(currentStroke);
+            scheduleSave(currentStroke);
         }
 
         currentStroke = null;
@@ -178,7 +189,7 @@ function addMouseEvents(canvas, ctx, undoStack, redoStack) {
             window._canvasDrawing = false;
             if (currentStroke && currentStroke.path.length >= 1) {
                 saveStrokeHistory(currentStroke, undoStack, redoStack);
-                await saveCanvasStrokes(currentStroke);
+                scheduleSave(currentStroke);
             }
 
             currentStroke = null;
@@ -284,7 +295,7 @@ function addTouchEvents(canvas, ctx, undoStack, redoStack) {
             window._canvasDrawing = false;
             if (currentStroke && currentStroke.path.length >= 1) {
                 saveStrokeHistory(currentStroke, undoStack, redoStack);
-                await saveCanvasStrokes(currentStroke);
+                scheduleSave(currentStroke);
             }
             currentStroke = null;
         }
@@ -295,7 +306,8 @@ function addTouchEvents(canvas, ctx, undoStack, redoStack) {
             drawing = false;
             window._canvasDrawing = false;
             if (currentStroke && currentStroke.path.length >= 1) {
-                await saveCanvasStrokes(currentStroke);
+                saveStrokeHistory(currentStroke, undoStack, redoStack);
+                scheduleSave(currentStroke);
             }
             currentStroke = null;
         }
