@@ -298,7 +298,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     // auto-load canvas data every second, but pause while drawing
     setInterval(async () => {
         if (!window._canvasDrawing) {
-            await loadCanvasData(canvas, ctx);
+            await loadCanvasStrokes(canvas, ctx);
         }
     }, 1000);
 });
