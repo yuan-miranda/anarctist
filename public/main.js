@@ -263,22 +263,42 @@ function addTouchEvents(canvas, ctx, undoStack, redoStack) {
     let drawing = false, lastX = 0, lastY = 0;
     let currentStroke = null;
 
-    // Touch drawing and panning
+    // Touch drawing, panning, and pinch-zoom
     let panMode = false;
     let panStartX = 0, panStartY = 0, panCanvasLeft = 0, panCanvasTop = 0;
+    let pinchMode = false;
+    let startDist = 0, startScale = 1, scale = 1;
+
+    // Helper to get distance between two touches
+    function getTouchDist(e) {
+        const dx = e.touches[0].clientX - e.touches[1].clientX;
+        const dy = e.touches[0].clientY - e.touches[1].clientY;
+        return Math.sqrt(dx * dx + dy * dy);
+    }
+
+    // Helper to set canvas transform
+    function updateCanvasTransform() {
+        canvas.style.transform = `scale(${scale})`;
+    }
 
     canvas.addEventListener('touchstart', e => {
         if (e.touches.length === 2) {
-            // Two-finger pan
+            // Two-finger: pan or pinch
             panMode = true;
-            panStartX = e.touches[0].clientX;
-            panStartY = e.touches[0].clientY;
+            pinchMode = true;
+            panStartX = (e.touches[0].clientX + e.touches[1].clientX) / 2;
+            panStartY = (e.touches[0].clientY + e.touches[1].clientY) / 2;
             panCanvasLeft = parseInt(canvas.style.left || '0', 10);
             panCanvasTop = parseInt(canvas.style.top || '0', 10);
+            startDist = getTouchDist(e);
+            startScale = scale;
+            drawing = false;
+            window._canvasDrawing = false;
             return;
         }
-        if (e.touches.length === 1) {
+        if (e.touches.length === 1 && !panMode && !pinchMode) {
             panMode = false;
+            pinchMode = false;
             const rect = canvas.getBoundingClientRect();
             const touch = e.touches[0];
             drawing = true;
@@ -296,41 +316,54 @@ function addTouchEvents(canvas, ctx, undoStack, redoStack) {
     }, { passive: false });
 
     canvas.addEventListener('touchmove', e => {
-        if (panMode && e.touches.length === 2) {
+        if (e.touches.length === 2 && (panMode || pinchMode)) {
             e.preventDefault();
-            const dx = e.touches[0].clientX - panStartX;
-            const dy = e.touches[0].clientY - panStartY;
+            // Pan
+            const midX = (e.touches[0].clientX + e.touches[1].clientX) / 2;
+            const midY = (e.touches[0].clientY + e.touches[1].clientY) / 2;
+            const dx = midX - panStartX;
+            const dy = midY - panStartY;
             canvas.style.left = (panCanvasLeft + dx) + 'px';
             canvas.style.top = (panCanvasTop + dy) + 'px';
+            // Pinch zoom
+            const dist = getTouchDist(e);
+            scale = Math.max(0.2, Math.min(4, startScale * (dist / startDist)));
+            updateCanvasTransform();
             return;
         }
-        if (!drawing || e.touches.length !== 1) return;
-        e.preventDefault();
-        const rect = canvas.getBoundingClientRect();
-        const touch = e.touches[0];
-        const x = (touch.clientX - rect.left) * (canvas.width / rect.width);
-        const y = (touch.clientY - rect.top) * (canvas.height / rect.height);
+        if (drawing && e.touches.length === 1 && !panMode && !pinchMode) {
+            e.preventDefault();
+            const rect = canvas.getBoundingClientRect();
+            const touch = e.touches[0];
+            const x = (touch.clientX - rect.left) * (canvas.width / rect.width);
+            const y = (touch.clientY - rect.top) * (canvas.height / rect.height);
 
-        ctx.beginPath();
-        ctx.moveTo(lastX, lastY);
-        ctx.lineTo(x, y);
-        ctx.stroke();
-        lastX = x;
-        lastY = y;
-        if (currentStroke) {
-            const last = currentStroke.path[currentStroke.path.length - 1];
-            if (!last || last.x !== x || last.y !== y) {
-                currentStroke.path.push({ x, y });
+            ctx.beginPath();
+            ctx.moveTo(lastX, lastY);
+            ctx.lineTo(x, y);
+            ctx.stroke();
+            lastX = x;
+            lastY = y;
+            if (currentStroke) {
+                const last = currentStroke.path[currentStroke.path.length - 1];
+                if (!last || last.x !== x || last.y !== y) {
+                    currentStroke.path.push({ x, y });
+                }
             }
         }
     }, { passive: false });
 
     canvas.addEventListener('touchend', async (e) => {
-        if (panMode && e.touches.length < 2) {
+        if (e.touches.length === 1) {
+            // If one finger remains, allow drawing again
             panMode = false;
-            return;
+            pinchMode = false;
         }
-        if (drawing) {
+        if (e.touches.length < 2) {
+            panMode = false;
+            pinchMode = false;
+        }
+        if (drawing && !panMode && !pinchMode) {
             drawing = false;
             window._canvasDrawing = false;
             if (currentStroke && currentStroke.path.length >= 1) {
@@ -343,6 +376,7 @@ function addTouchEvents(canvas, ctx, undoStack, redoStack) {
 
     canvas.addEventListener('touchcancel', async () => {
         panMode = false;
+        pinchMode = false;
         if (drawing) {
             drawing = false;
             window._canvasDrawing = false;
