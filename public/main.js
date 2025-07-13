@@ -2,22 +2,10 @@ function saveStrokeHistory(stroke, undoStack, redoStack, keepRedo = false) {
     if (!keepRedo) redoStack.length = 0;
     if (stroke && stroke.path && stroke.path.length > 1) {
         undoStack.push(stroke);
+        console.log('Saved stroke:', stroke);
         if (undoStack.length > 50) undoStack.shift();
     }
 
-}
-
-function restoreState(canvas, ctx, stackFrom, stackTo) {
-    if (!stackFrom.length) return;
-    stackTo.push(canvas.toDataURL());
-
-    const img = new window.Image();
-    img.src = stackFrom.pop();
-    img.onload = () => {
-        ctx.clearRect(0, 0, canvas.width, canvas.height);
-        ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
-        saveCanvasData(canvas);
-    };
 }
 
 async function saveCanvasData(canvas) {
@@ -70,6 +58,7 @@ function undoStroke(canvas, ctx, undoStack, redoStack) {
     if (!undoStack.length) return;
 
     const lastStroke = undoStack.pop();
+    console.log('Undoing stroke:', lastStroke);
     redoStack.push(lastStroke);
 
     renderStrokes(canvas, ctx, undoStack);
@@ -146,18 +135,25 @@ function addMouseEvents(canvas, ctx, undoStack, redoStack) {
             drawing = false;
             window._canvasDrawing = false;
 
-            saveStrokeHistory(currentStroke, undoStack, redoStack);
+            if (currentStroke && currentStroke.path.length > 1) {
+                saveStrokeHistory(currentStroke, undoStack, redoStack);
+                await saveCanvasStrokes(currentStroke);
+            }
 
-            await saveCanvasStrokes(currentStroke);
             currentStroke = null;
         }
     });
 
-    canvas.addEventListener('mouseleave', () => {
+    canvas.addEventListener('mouseleave', async () => {
         if (drawing) {
             drawing = false;
             window._canvasDrawing = false;
-            saveCanvasData(canvas);
+            if (currentStroke && currentStroke.path.length > 1) {
+                saveStrokeHistory(currentStroke, undoStack, redoStack);
+                await saveCanvasStrokes(currentStroke);
+            }
+
+            currentStroke = null;
         }
     });
 
@@ -308,11 +304,5 @@ document.addEventListener('DOMContentLoaded', async () => {
     document.body.style.cursor = 'grab';
 
     eventListeners(canvas, ctx, undoStack, redoStack);
-
-    // auto-load canvas data every second, but pause while drawing
-    setInterval(async () => {
-        if (!window._canvasDrawing) {
-            await loadCanvasStrokes(canvas, ctx);
-        }
-    }, 1000);
+    await loadCanvasStrokes(canvas, ctx);
 });
