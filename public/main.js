@@ -157,18 +157,18 @@ function addMouseEvents(canvas, ctx, undoStack, redoStack) {
     });
 
     canvas.addEventListener('mouseup', async e => {
-        if (drawing && e.button === 0) {
-            drawing = false;
-            window._canvasDrawing = false;
+        if (!drawing) return;
 
-            if (currentStroke && currentStroke.path.length >= 1) {
-                saveStrokeHistory(currentStroke, undoStack, redoStack);
-                await saveCanvasStrokes(currentStroke);
-            }
+        drawing = false;
+        window._canvasDrawing = false;
 
-            currentStroke = null;
+        if (currentStroke && currentStroke.path.length >= 1) {
+            console.log('mouseup at inside:', e.offsetX, e.offsetY);
+            saveStrokeHistory(currentStroke, undoStack, redoStack);
+            await saveCanvasStrokes(currentStroke);
         }
 
+        currentStroke = null;
         console.log('mouseup at:', e.offsetX, e.offsetY);
     });
 
