@@ -12,16 +12,17 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         return res.status(405).json({ error: 'Method Not Allowed' });
     }
 
-    const { id } = req.body;
-    if (!id) {
+    const { id, deleteAll } = req.body;
+    if (!id && !deleteAll) {
         return res.status(400).json({ error: 'Invalid request body. Expected id.' });
     }
 
     try {
-        await client.execute({
-            sql: 'DELETE FROM canvas_strokes WHERE id = ?',
-            args: [id]
-        });
+        if (deleteAll) {
+            await client.execute('DELETE FROM canvas_strokes');
+        } else {
+            await client.execute('DELETE FROM canvas_strokes WHERE id = ?', [id]);
+        }
 
         res.status(200).json({ message: 'Canvas stroke deleted successfully' });
     } catch (error) {

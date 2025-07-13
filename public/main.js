@@ -47,14 +47,14 @@ async function loadCanvasStrokes(canvas, ctx) {
     }
 }
 
-async function deleteCanvasStrokes(id) {
+async function deleteCanvasStrokes(id, deleteAll = false) {
     try {
         const response = await fetch('/api/delete_stroke', {
             method: 'DELETE',
             headers: {
                 'Content-Type': 'application/json'
             },
-            body: JSON.stringify({ id })
+            body: JSON.stringify({ id, deleteAll })
         });
 
         const data = await response.json();
@@ -294,20 +294,33 @@ function eventListeners(canvas, ctx, undoStack, redoStack) {
     addMouseEvents(canvas, ctx, undoStack, redoStack);
     addTouchEvents(canvas, ctx, undoStack, redoStack);
 
-    window.addEventListener('keydown', e => {
+    window.addEventListener('keydown', async e => {
         if ((e.ctrlKey || e.metaKey) && !e.shiftKey && e.key.toLowerCase() === 'z') {
             e.preventDefault();
-            undoStroke(canvas, ctx, undoStack, redoStack);
+            await undoStroke(canvas, ctx, undoStack, redoStack);
         } else if ((e.ctrlKey || e.metaKey) && (e.key.toLowerCase() === 'y' || (e.shiftKey && e.key.toLowerCase() === 'z'))) {
             e.preventDefault();
-            redoStroke(canvas, ctx, undoStack, redoStack);
+            await redoStroke(canvas, ctx, undoStack, redoStack);
         }
     });
 
-    document.getElementById('clearCanvas').addEventListener('click', () => {
+    document.getElementById('clearCanvas').addEventListener('click', async () => {
         ctx.clearRect(0, 0, canvas.width, canvas.height);
-        saveCanvasData(canvas);
-        // not working ignore
+        undoStack.length = 0;
+        redoStack.length = 0;
+        await deleteCanvasStrokes(null, true);
+    });
+
+    document.getElementById('loadStrokes').addEventListener('click', async () => {
+        await loadCanvasStrokes(canvas, ctx);
+    });
+
+    document.getElementById('undoStroke').addEventListener('click', async () => {
+        await undoStroke(canvas, ctx, undoStack, redoStack);
+    });
+
+    document.getElementById('redoStroke').addEventListener('click', async () => {
+        await redoStroke(canvas, ctx, undoStack, redoStack);
     });
 
     document.addEventListener('contextmenu', e => e.preventDefault());
@@ -327,4 +340,10 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     eventListeners(canvas, ctx, undoStack, redoStack);
     await loadCanvasStrokes(canvas, ctx);
+
+    setInterval(async () => {
+        if (!window._canvasDrawing) {
+            await loadCanvasStrokes(canvas, ctx);
+        }
+    }, 2000);
 });

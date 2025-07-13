@@ -28,16 +28,27 @@ body {
     border: 1px solid #ccc;
 }
 
-#clearCanvas {
+.canvas-actions {
     position: fixed;
     top: 10px;
     right: 10px;
     z-index: 100;
+}
+
+.canvas-actions button,
+.stroke-actions button {
     padding: 0.8rem;
     background: #fff;
     border: 1px solid #ccc;
     border-radius: 4px;
     cursor: pointer;
+}
+
+.stroke-actions {
+    position: fixed;
+    bottom: 10px;
+    right: 10px;
+    z-index: 100;
 }
 
 h1 {
