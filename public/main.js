@@ -182,7 +182,7 @@ function addMouseEvents(canvas, ctx, undoStack) {
             container.style.cursor = 'grabbing';
             dragStartX = e.clientX;
             dragStartY = e.clientY;
-            const pos = getCanvasPos();
+            const pos = getCanvasPos(container);
             containerStartX = pos.left;
             containerStartY = pos.top;
             document.body.style.userSelect = 'none';
