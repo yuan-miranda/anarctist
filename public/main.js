@@ -81,24 +81,17 @@ async function undoStroke(canvas, ctx, undoStack, redoStack) {
     console.log('Undoing stroke:', lastStroke);
     redoStack.push(lastStroke);
 
-    // renderStrokes(canvas, ctx, undoStack);
+    if (lastStroke.id) await deleteCanvasStrokes(lastStroke.id);
     await loadCanvasStrokes(canvas, ctx);
-
-    if (lastStroke.id) {
-        await deleteCanvasStrokes(lastStroke.id);
-    }
 }
 
 async function redoStroke(canvas, ctx, undoStack, redoStack) {
     if (!redoStack.length) return;
 
     const lastStroke = redoStack.pop();
-
     await saveCanvasStrokes(lastStroke);
 
     undoStack.push(lastStroke);
-
-    // renderStrokes(canvas, ctx, undoStack);
     await loadCanvasStrokes(canvas, ctx);
 }
 
