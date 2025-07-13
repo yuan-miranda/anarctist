@@ -14,16 +14,23 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
     try {
         const result = await client.execute({
-            sql: 'SELECT data FROM canvas_data WHERE id = ? LIMIT 1',
-            args: ['default'],
+            sql: 'SELECT * FROM canvas_strokes ORDER BY created_at ASC',
         });
 
-        const row = result.rows[0];
-        if (!row) return res.status(404).json({ error: 'Canvas not found' });
 
-        res.status(200).json({ data: row.data });
+        const strokes = result.rows.map((row: any) => {
+            const path = JSON.parse(row.path);
+            return {
+                path,
+                color: row.color,
+                width: row.width,
+                createdAt: row.created_at,
+            };
+        });
+
+        res.status(200).json({ strokes });
     } catch (error) {
-        console.error('Error loading canvas:', error);
-        res.status(500).json({ error: 'Failed to load canvas data' });
+        console.error('Error loading canvas strokes:', error);
+        res.status(500).json({ error: 'Failed to load canvas strokes' });
     }
 }
