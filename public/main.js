@@ -157,7 +157,7 @@ function addMouseEvents(canvas, ctx, undoStack, redoStack) {
             drawing = false;
             window._canvasDrawing = false;
 
-            if (currentStroke && currentStroke.path.length > 1) {
+            if (currentStroke && currentStroke.path.length >= 1) {
                 saveStrokeHistory(currentStroke, undoStack, redoStack);
                 await saveCanvasStrokes(currentStroke);
             }
@@ -170,7 +170,7 @@ function addMouseEvents(canvas, ctx, undoStack, redoStack) {
         if (drawing) {
             drawing = false;
             window._canvasDrawing = false;
-            if (currentStroke && currentStroke.path.length > 1) {
+            if (currentStroke && currentStroke.path.length >= 1) {
                 saveStrokeHistory(currentStroke, undoStack, redoStack);
                 await saveCanvasStrokes(currentStroke);
             }
@@ -269,7 +269,7 @@ function addTouchEvents(canvas, ctx, undoStack, redoStack) {
         if (drawing) {
             drawing = false;
             window._canvasDrawing = false;
-            if (currentStroke && currentStroke.path.length > 1) {
+            if (currentStroke && currentStroke.path.length >= 1) {
                 saveStrokeHistory(currentStroke, undoStack, redoStack);
                 await saveCanvasStrokes(currentStroke);
             }
@@ -281,7 +281,7 @@ function addTouchEvents(canvas, ctx, undoStack, redoStack) {
         if (drawing) {
             drawing = false;
             window._canvasDrawing = false;
-            if (currentStroke && currentStroke.path.length > 1) {
+            if (currentStroke && currentStroke.path.length >= 1) {
                 await saveCanvasStrokes(currentStroke);
             }
             currentStroke = null;
