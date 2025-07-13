@@ -1,7 +1,10 @@
-function saveState(canvas, stack, keepRedo = false) {
-    if (!keepRedo) redoStack = [];
-    stack.push(canvas.toDataURL());
-    if (stack.length > 50) stack.shift();
+function saveStrokeHistory(stroke, undoStack, redoStack, keepRedo = false) {
+    if (!keepRedo) redoStack.length = 0;
+    if (stroke && stroke.path && stroke.path.length > 1) {
+        undoStack.push(stroke);
+        if (undoStack.length > 50) undoStack.shift();
+    }
+
 }
 
 function restoreState(canvas, ctx, stackFrom, stackTo) {
@@ -18,44 +21,12 @@ function restoreState(canvas, ctx, stackFrom, stackTo) {
 }
 
 async function saveCanvasData(canvas) {
-    return;
+    return; // ignore for legacy support
 }
 
 async function loadCanvasData(canvas, ctx) {
-    return;
+    return; // ignore for legacy support
 }
-
-// async function saveCanvasData(canvas) {
-//     try {
-//         const data = canvas.toDataURL();
-//         await fetch('/api/save_canvas', {
-//             method: 'POST',
-//             headers: {
-//                 'Content-Type': 'application/json'
-//             },
-//             body: JSON.stringify({ data })
-//         });
-//     } catch (e) {
-//         console.error(e);
-//     }
-// }
-
-// async function loadCanvasData(canvas, ctx) {
-//     try {
-//         const response = await fetch('/api/load_canvas');
-//         if (!response.ok) return console.error('Failed to load canvas data');
-
-//         const data = await response.json();
-//         const img = new Image();
-//         img.src = data.data;
-//         img.onload = () => {
-//             ctx.clearRect(0, 0, canvas.width, canvas.height);
-//             ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
-//         };
-//     } catch (e) {
-//         console.error(e);
-//     }
-// }
 
 async function saveCanvasStrokes(stroke) {
     try {
@@ -79,28 +50,9 @@ async function loadCanvasStrokes(canvas, ctx) {
     try {
         const response = await fetch('/api/load_strokes');
         const data = await response.json();
-
         if (!response.ok) return console.error(data.error);
 
-        // Clear the canvas before rendering strokes
-        ctx.clearRect(0, 0, canvas.width, canvas.height);
-
-        for (const stroke of data.strokes) {
-            const path = stroke.path;
-            if (!path.length) continue;
-
-            ctx.save();
-            ctx.strokeStyle = stroke.color || '#000';
-            ctx.lineWidth = stroke.width || 2;
-
-            ctx.beginPath();
-            ctx.moveTo(path[0].x, path[0].y);
-            for (let i = 1; i < path.length; i++) {
-                ctx.lineTo(path[i].x, path[i].y);
-            }
-            ctx.stroke();
-            ctx.restore();
-        }
+        renderStrokes(canvas, ctx, data.strokes);
     } catch (e) {
         console.error(e);
     }
@@ -114,17 +66,54 @@ function getCanvasPos(container) {
     };
 }
 
-function addMouseEvents(canvas, ctx, undoStack) {
+function undoStroke(canvas, ctx, undoStack, redoStack) {
+    if (!undoStack.length) return;
+
+    const lastStroke = undoStack.pop();
+    redoStack.push(lastStroke);
+
+    renderStrokes(canvas, ctx, undoStack);
+}
+
+function redoStroke(canvas, ctx, undoStack, redoStack) {
+    if (!redoStack.length) return;
+
+    const lastStroke = redoStack.pop();
+    undoStack.push(lastStroke);
+
+    renderStrokes(canvas, ctx, undoStack);
+}
+
+function renderStrokes(canvas, ctx, strokes) {
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+    for (const stroke of strokes) {
+        const path = stroke.path;
+        if (!path.length) continue;
+
+        ctx.save();
+        ctx.strokeStyle = stroke.color || '#000';
+        ctx.lineWidth = stroke.width || 2;
+
+        ctx.beginPath();
+        ctx.moveTo(path[0].x, path[0].y);
+        for (let i = 1; i < path.length; i++) {
+            ctx.lineTo(path[i].x, path[i].y);
+        }
+        ctx.stroke();
+        ctx.restore();
+    }
+}
+
+function addMouseEvents(canvas, ctx, undoStack, redoStack) {
     let currentStroke = null;
-    let drawing = false, lastX = 0, lastY = 0;
+    let drawing = false;
     window._canvasDrawing = false;
 
     canvas.addEventListener('mousedown', e => {
         if (e.button !== 0) return;
         drawing = true;
         window._canvasDrawing = true;
-
-        saveState(canvas, undoStack);
 
         const x = e.offsetX;
         const y = e.offsetY;
@@ -156,6 +145,9 @@ function addMouseEvents(canvas, ctx, undoStack) {
         if (drawing && e.button === 0) {
             drawing = false;
             window._canvasDrawing = false;
+
+            saveStrokeHistory(currentStroke, undoStack, redoStack);
+
             await saveCanvasStrokes(currentStroke);
             currentStroke = null;
         }
@@ -211,7 +203,7 @@ function addMouseEvents(canvas, ctx, undoStack) {
 }
 
 
-function addTouchEvents(canvas, ctx, undoStack) {
+function addTouchEvents(canvas, ctx, undoStack, redoStack) {
     let drawing = false, lastX = 0, lastY = 0;
     let currentStroke = null;
 
@@ -221,8 +213,6 @@ function addTouchEvents(canvas, ctx, undoStack) {
             const touch = e.touches[0];
             drawing = true;
             window._canvasDrawing = true;
-
-            saveState(canvas, undoStack);
 
             lastX = (touch.clientX - rect.left) * (canvas.width / rect.width);
             lastY = (touch.clientY - rect.top) * (canvas.height / rect.height);
@@ -262,6 +252,7 @@ function addTouchEvents(canvas, ctx, undoStack) {
             drawing = false;
             window._canvasDrawing = false;
             if (currentStroke && currentStroke.path.length > 1) {
+                saveStrokeHistory(currentStroke, undoStack, redoStack);
                 await saveCanvasStrokes(currentStroke);
             }
             currentStroke = null;
@@ -282,24 +273,23 @@ function addTouchEvents(canvas, ctx, undoStack) {
 
 
 function eventListeners(canvas, ctx, undoStack, redoStack) {
-    let drawing = false;
-    addMouseEvents(canvas, ctx, undoStack);
-    addTouchEvents(canvas, ctx, undoStack);
+    addMouseEvents(canvas, ctx, undoStack, redoStack);
+    addTouchEvents(canvas, ctx, undoStack, redoStack);
 
     window.addEventListener('keydown', e => {
-        if (drawing) return;
         if ((e.ctrlKey || e.metaKey) && !e.shiftKey && e.key.toLowerCase() === 'z') {
             e.preventDefault();
-            restoreState(canvas, ctx, undoStack, redoStack);
+            undoStroke(canvas, ctx, undoStack, redoStack);
         } else if ((e.ctrlKey || e.metaKey) && (e.key.toLowerCase() === 'y' || (e.shiftKey && e.key.toLowerCase() === 'z'))) {
             e.preventDefault();
-            restoreState(canvas, ctx, redoStack, undoStack);
+            redoStroke(canvas, ctx, undoStack, redoStack);
         }
     });
 
     document.getElementById('clearCanvas').addEventListener('click', () => {
         ctx.clearRect(0, 0, canvas.width, canvas.height);
         saveCanvasData(canvas);
+        // not working ignore
     });
 
     document.addEventListener('contextmenu', e => e.preventDefault());
