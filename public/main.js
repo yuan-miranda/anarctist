@@ -138,7 +138,7 @@ function addMouseEvents(canvas, ctx, undoStack, redoStack) {
     });
 
     canvas.addEventListener('mousemove', e => {
-        if (!drawing) return;
+        if (!drawing || !currentStroke || !currentStroke.path) return;
 
         const x = e.offsetX;
         const y = e.offsetY;
