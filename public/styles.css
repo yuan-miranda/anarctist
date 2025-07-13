@@ -65,6 +65,7 @@ h1 {
     html,
     body {
         height: 100%;
+        overflow: hidden;
     }
 
     #canvas-container {
@@ -72,6 +73,10 @@ h1 {
         height: 100vh;
         overflow: auto;
         border: 1px solid #ccc;
+
+        position: relative;
+        touch-action: auto;
+        cursor: grab;
     }
 
     #draw-canvas {
