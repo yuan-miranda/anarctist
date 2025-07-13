@@ -35,13 +35,13 @@ async function saveCanvasStrokes(stroke) {
     }
 }
 
-async function loadCanvasStrokes(canvas, ctx) {
+async function loadCanvasStrokes(canvas, ctx, clearCanvas = true) {
     try {
         const response = await fetch('/api/load_strokes');
         const data = await response.json();
         if (!response.ok) return console.error(data.error);
 
-        renderStrokes(canvas, ctx, data.strokes);
+        renderStrokes(canvas, ctx, data.strokes, clearCanvas);
     } catch (e) {
         console.error(e);
     }
@@ -75,7 +75,7 @@ function getCanvasPos(container) {
 }
 
 async function undoStroke(canvas, ctx, undoStack, redoStack) {
-    if (!undoStack.length) return;
+    if (!undoStack.length || window._canvasDrawing) return;
 
     const lastStroke = undoStack.pop();
     console.log('Undoing stroke:', lastStroke);
@@ -86,7 +86,7 @@ async function undoStroke(canvas, ctx, undoStack, redoStack) {
 }
 
 async function redoStroke(canvas, ctx, undoStack, redoStack) {
-    if (!redoStack.length) return;
+    if (!redoStack.length || window._canvasDrawing) return;
 
     const lastStroke = redoStack.pop();
     await saveCanvasStrokes(lastStroke);
@@ -95,8 +95,8 @@ async function redoStroke(canvas, ctx, undoStack, redoStack) {
     await loadCanvasStrokes(canvas, ctx);
 }
 
-function renderStrokes(canvas, ctx, strokes) {
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
+function renderStrokes(canvas, ctx, strokes, clearCanvas = false) {
+    if (clearCanvas) ctx.clearRect(0, 0, canvas.width, canvas.height);
 
     for (const stroke of strokes) {
         const path = stroke.path;
@@ -341,9 +341,12 @@ document.addEventListener('DOMContentLoaded', async () => {
     eventListeners(canvas, ctx, undoStack, redoStack);
     await loadCanvasStrokes(canvas, ctx);
 
+    let counter = 0;
     setInterval(async () => {
         if (!window._canvasDrawing) {
-            await loadCanvasStrokes(canvas, ctx);
+            counter++;
+            const forceClear = counter % 10 === 0;
+            await loadCanvasStrokes(canvas, ctx, forceClear);
         }
-    }, 2000);
+    }, 1000);
 });
