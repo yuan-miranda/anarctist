@@ -239,16 +239,13 @@ function addMouseEvents(canvas, ctx, undoStack, redoStack) {
     });
 }
 
+
 function addTouchEvents(canvas, ctx, undoStack, redoStack) {
     let drawing = false, lastX = 0, lastY = 0;
     let currentStroke = null;
-    let panStart = null;
-    let panOffset = { x: 0, y: 0 };
-    const container = document.getElementById('canvas-container');
 
     canvas.addEventListener('touchstart', e => {
         if (e.touches.length === 1) {
-            e.preventDefault();
             const rect = canvas.getBoundingClientRect();
             const touch = e.touches[0];
             drawing = true;
@@ -262,79 +259,56 @@ function addTouchEvents(canvas, ctx, undoStack, redoStack) {
                 path: [{ x: lastX, y: lastY }],
                 createdAt: new Date().toISOString()
             };
-        } else if (e.touches.length === 2) {
-            e.preventDefault();
-            const t1 = e.touches[0];
-            const t2 = e.touches[1];
-            panStart = {
-                x: (t1.clientX + t2.clientX) / 2,
-                y: (t1.clientY + t2.clientY) / 2,
-            };
-            const transform = container.style.transform.match(/translate\((-?\d+)px,\s*(-?\d+)px\)/);
-            if (transform) {
-                panOffset.x = parseInt(transform[1], 10);
-                panOffset.y = parseInt(transform[2], 10);
-            } else {
-                panOffset = { x: 0, y: 0 };
-            }
         }
     }, { passive: false });
 
     canvas.addEventListener('touchmove', e => {
-        if (e.touches.length === 1 && drawing) {
-            e.preventDefault();
-            const rect = canvas.getBoundingClientRect();
-            const touch = e.touches[0];
-            const x = (touch.clientX - rect.left) * (canvas.width / rect.width);
-            const y = (touch.clientY - rect.top) * (canvas.height / rect.height);
+        if (!drawing || e.touches.length !== 1) return;
+        e.preventDefault();
+        const rect = canvas.getBoundingClientRect();
+        const touch = e.touches[0];
+        const x = (touch.clientX - rect.left) * (canvas.width / rect.width);
+        const y = (touch.clientY - rect.top) * (canvas.height / rect.height);
 
-            ctx.beginPath();
-            ctx.moveTo(lastX, lastY);
-            ctx.lineTo(x, y);
-            ctx.stroke();
-            lastX = x;
-            lastY = y;
-            if (currentStroke) {
-                const last = currentStroke.path[currentStroke.path.length - 1];
-                if (!last || last.x !== x || last.y !== y) {
-                    currentStroke.path.push({ x, y });
-                }
+        ctx.beginPath();
+        ctx.moveTo(lastX, lastY);
+        ctx.lineTo(x, y);
+        ctx.stroke();
+        lastX = x;
+        lastY = y;
+        if (currentStroke) {
+            const last = currentStroke.path[currentStroke.path.length - 1];
+            if (!last || last.x !== x || last.y !== y) {
+                currentStroke.path.push({ x, y });
             }
-        } else if (e.touches.length === 2 && panStart) {
-            e.preventDefault();
-            const t1 = e.touches[0];
-            const t2 = e.touches[1];
-            const midX = (t1.clientX + t2.clientX) / 2;
-            const midY = (t1.clientY + t2.clientY) / 2;
-            const dx = midX - panStart.x;
-            const dy = midY - panStart.y;
-
-            container.style.transform = `translate(${panOffset.x + dx}px, ${panOffset.y + dy}px)`;
         }
     }, { passive: false });
 
-    canvas.addEventListener('touchend', () => {
-        drawing = false;
-        panStart = null;
-        window._canvasDrawing = false;
-        if (currentStroke && currentStroke.path.length >= 1) {
-            saveStrokeHistory(currentStroke, undoStack, redoStack);
-            scheduleSave(currentStroke);
+    canvas.addEventListener('touchend', async () => {
+        if (drawing) {
+            drawing = false;
+            window._canvasDrawing = false;
+            if (currentStroke && currentStroke.path.length >= 1) {
+                saveStrokeHistory(currentStroke, undoStack, redoStack);
+                scheduleSave(currentStroke);
+            }
+            currentStroke = null;
         }
-        currentStroke = null;
-    }, { passive: false });
+    });
 
-    canvas.addEventListener('touchcancel', () => {
-        drawing = false;
-        panStart = null;
-        window._canvasDrawing = false;
-        if (currentStroke && currentStroke.path.length >= 1) {
-            saveStrokeHistory(currentStroke, undoStack, redoStack);
-            scheduleSave(currentStroke);
+    canvas.addEventListener('touchcancel', async () => {
+        if (drawing) {
+            drawing = false;
+            window._canvasDrawing = false;
+            if (currentStroke && currentStroke.path.length >= 1) {
+                saveStrokeHistory(currentStroke, undoStack, redoStack);
+                scheduleSave(currentStroke);
+            }
+            currentStroke = null;
         }
-        currentStroke = null;
-    }, { passive: false });
+    });
 }
+
 
 function eventListeners(canvas, ctx, undoStack, redoStack) {
     addMouseEvents(canvas, ctx, undoStack, redoStack);
