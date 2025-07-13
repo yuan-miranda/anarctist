@@ -1,6 +1,16 @@
 const strokeQueue = [];
 let isSaving = false;
 
+let zoomLevel = 1;
+const ZOOM_STEP = 0.1;
+const MAX_ZOOM = 3;
+const MIN_ZOOM = 0.3;
+
+function applyZoom(canvas) {
+    canvas.style.transform = `scale(${zoomLevel})`;
+    canvas.style.transformOrigin = '0 0';
+}
+
 function saveStrokeHistory(stroke, undoStack, redoStack, keepRedo = false) {
     if (!keepRedo) redoStack.length = 0;
     if (stroke && stroke.path && stroke.path.length > 1) {
@@ -403,6 +413,25 @@ function eventListeners(canvas, ctx, undoStack, redoStack) {
 
     document.getElementById('redoStroke').addEventListener('click', async () => {
         await redoStroke(canvas, ctx, undoStack, redoStack);
+    });
+
+    const zoomInButton = document.getElementById('zoomIn');
+    const zoomOutButton = document.getElementById('zoomOut');
+
+    zoomInButton.addEventListener('click', () => {
+        zoomLevel = Math.min(zoomLevel + ZOOM_STEP, MAX_ZOOM);
+        applyZoom(canvas);
+
+        zoomInButton.disabled = zoomLevel >= MAX_ZOOM;
+        zoomOutButton.disabled = zoomLevel <= MIN_ZOOM;
+    });
+
+    zoomOutButton.addEventListener('click', () => {
+        zoomLevel = Math.max(zoomLevel - ZOOM_STEP, MIN_ZOOM);
+        applyZoom(canvas);
+
+        zoomInButton.disabled = zoomLevel >= MAX_ZOOM;
+        zoomOutButton.disabled = zoomLevel <= MIN_ZOOM;
     });
 
     document.addEventListener('contextmenu', e => e.preventDefault());
