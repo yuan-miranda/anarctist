@@ -123,6 +123,9 @@ function addMouseEvents(canvas, ctx, undoStack) {
         if (e.button !== 0) return;
         drawing = true;
         window._canvasDrawing = true;
+
+        saveState(canvas, undoStack);
+
         const x = e.offsetX;
         const y = e.offsetY;
 
@@ -218,6 +221,9 @@ function addTouchEvents(canvas, ctx, undoStack) {
             const touch = e.touches[0];
             drawing = true;
             window._canvasDrawing = true;
+
+            saveState(canvas, undoStack);
+
             lastX = (touch.clientX - rect.left) * (canvas.width / rect.width);
             lastY = (touch.clientY - rect.top) * (canvas.height / rect.height);
             currentStroke = {
