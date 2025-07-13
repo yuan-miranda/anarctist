@@ -26,9 +26,10 @@ async function saveCanvasStrokes(stroke) {
             body: JSON.stringify(stroke)
         });
 
-        if (!response.ok) {
-            console.error((await response.json()).error);
-        }
+        const data = await response.json();
+        if (!response.ok) return console.error(data.error);
+
+        stroke.id = data.id;
     } catch (e) {
         console.error(e);
     }
@@ -46,6 +47,25 @@ async function loadCanvasStrokes(canvas, ctx) {
     }
 }
 
+async function deleteCanvasStrokes(id) {
+    try {
+        const response = await fetch('/api/delete_stroke', {
+            method: 'DELETE',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ id })
+        });
+
+        const data = await response.json();
+        if (!response.ok) return console.error(data.error);
+
+        console.log('Deleted stroke with ID:', id);
+    } catch (e) {
+        console.error(e);
+    }
+}
+
 function getCanvasPos(container) {
     const style = window.getComputedStyle(container);
     return {
@@ -54,7 +74,7 @@ function getCanvasPos(container) {
     };
 }
 
-function undoStroke(canvas, ctx, undoStack, redoStack) {
+async function undoStroke(canvas, ctx, undoStack, redoStack) {
     if (!undoStack.length) return;
 
     const lastStroke = undoStack.pop();
@@ -62,6 +82,10 @@ function undoStroke(canvas, ctx, undoStack, redoStack) {
     redoStack.push(lastStroke);
 
     renderStrokes(canvas, ctx, undoStack);
+
+    if (lastStroke.id) {
+        await deleteCanvasStrokes(lastStroke.id);
+    }
 }
 
 function redoStroke(canvas, ctx, undoStack, redoStack) {

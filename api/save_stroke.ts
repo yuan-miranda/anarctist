@@ -1,4 +1,4 @@
-// api/save_canvas.ts
+// api/save_stroke.ts
 import { createClient } from "@libsql/client";
 import { VercelRequest, VercelResponse } from '@vercel/node';
 
@@ -18,15 +18,17 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     }
 
     try {
-        await client.execute({
+        const result = await client.execute({
             sql: `
                 INSERT INTO canvas_strokes (path, color, width)
                 VALUES (?, ?, ?)
+                RETURNING id
             `,
             args: [JSON.stringify(path), color, width]
         });
 
-        res.status(200).json({ message: 'Canvas stroke saved successfully' });
+        const id = result.rows[0].id;
+        res.status(200).json({ message: 'Canvas stroke saved successfully', id });
     } catch (error) {
         console.error('Error saving canvas stroke:', error);
         res.status(500).json({ error: 'Failed to save canvas stroke' });

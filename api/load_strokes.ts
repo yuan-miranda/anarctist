@@ -1,4 +1,4 @@
-// api/load_canvas.ts
+// api/load_strokes.ts
 import { createClient } from "@libsql/client";
 import { VercelRequest, VercelResponse } from '@vercel/node';
 
