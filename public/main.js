@@ -88,10 +88,13 @@ async function undoStroke(canvas, ctx, undoStack, redoStack) {
     }
 }
 
-function redoStroke(canvas, ctx, undoStack, redoStack) {
+async function redoStroke(canvas, ctx, undoStack, redoStack) {
     if (!redoStack.length) return;
 
     const lastStroke = redoStack.pop();
+
+    await saveCanvasStrokes(lastStroke);
+
     undoStack.push(lastStroke);
 
     renderStrokes(canvas, ctx, undoStack);
