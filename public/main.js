@@ -16,6 +16,7 @@ function scheduleSave(stroke) {
         if (stroke && stroke.path.length > 1) {
             await saveCanvasStrokes(stroke);
         }
+        saveStrokeTimeout = null;
     }, 500);
 }
 
@@ -40,6 +41,7 @@ async function saveCanvasStrokes(stroke) {
         const data = await response.json();
         if (!response.ok) return console.error(data.error);
 
+        console.log('Saved stroke with ID:', data.id);
         stroke.id = data.id;
     } catch (e) {
         console.error(e);
@@ -146,8 +148,6 @@ function addMouseEvents(canvas, ctx, undoStack, redoStack) {
             path: [{ x, y }],
             createdAt: new Date().toISOString()
         };
-
-        console.log('mousedown at:', x, y);
     });
 
     canvas.addEventListener('mousemove', e => {
@@ -163,8 +163,6 @@ function addMouseEvents(canvas, ctx, undoStack, redoStack) {
         ctx.lineTo(x, y);
         ctx.stroke();
         currentStroke.path.push({ x, y });
-
-        console.log('mousemove at:', x, y);
     });
 
     canvas.addEventListener('mouseup', async e => {
@@ -174,13 +172,11 @@ function addMouseEvents(canvas, ctx, undoStack, redoStack) {
         window._canvasDrawing = false;
 
         if (currentStroke && currentStroke.path.length >= 1) {
-            console.log('mouseup at inside:', e.offsetX, e.offsetY);
             saveStrokeHistory(currentStroke, undoStack, redoStack);
             scheduleSave(currentStroke);
         }
 
         currentStroke = null;
-        console.log('mouseup at:', e.offsetX, e.offsetY);
     });
 
     canvas.addEventListener('mouseleave', async () => {
@@ -194,8 +190,6 @@ function addMouseEvents(canvas, ctx, undoStack, redoStack) {
 
             currentStroke = null;
         }
-
-        console.log('mouseleave');
     });
 
     const container = document.getElementById('canvas-container');
@@ -203,11 +197,9 @@ function addMouseEvents(canvas, ctx, undoStack, redoStack) {
 
     container.addEventListener('mouseenter', () => {
         if (!isDragging) container.style.cursor = 'crosshair';
-        // console.log('mouseenter');
     });
     container.addEventListener('mouseleave', () => {
         if (!isDragging) container.style.cursor = '';
-        // console.log('mouseleave');
     });
     document.addEventListener('mousedown', e => {
         if (e.button === 2) {
@@ -221,7 +213,6 @@ function addMouseEvents(canvas, ctx, undoStack, redoStack) {
             containerStartY = pos.top;
             document.body.style.userSelect = 'none';
         }
-        // console.log('mousedown on document:', e.clientX, e.clientY);
     });
     document.addEventListener('mousemove', e => {
         if (isDragging) {
@@ -231,7 +222,6 @@ function addMouseEvents(canvas, ctx, undoStack, redoStack) {
             container.style.top = (containerStartY + dy) + 'px';
             container.style.transform = '';
         }
-        // console.log('mousemove on document:', e.clientX, e.clientY);
     });
     document.addEventListener('mouseup', e => {
         if (isDragging && e.button === 2) {
@@ -240,7 +230,6 @@ function addMouseEvents(canvas, ctx, undoStack, redoStack) {
             container.style.cursor = 'crosshair';
             document.body.style.userSelect = '';
         }
-        // console.log('mouseup on document:', e.clientX, e.clientY);
     });
 }
 
@@ -370,8 +359,8 @@ document.addEventListener('DOMContentLoaded', async () => {
     setInterval(async () => {
         if (!window._canvasDrawing) {
             counter++;
-            const forceClear = counter % 2 === 0;
+            const forceClear = counter % 5 === 0;
             await loadCanvasStrokes(canvas, ctx, forceClear);
         }
-    }, 5000);
+    }, 1000);
 });
