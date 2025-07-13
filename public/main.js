@@ -312,7 +312,7 @@ function addTouchEvents(canvas, ctx, undoStack, redoStack) {
 
 function eventListeners(canvas, ctx, undoStack, redoStack) {
     addMouseEvents(canvas, ctx, undoStack, redoStack);
-    // addTouchEvents(canvas, ctx, undoStack, redoStack);
+    addTouchEvents(canvas, ctx, undoStack, redoStack);
 
     window.addEventListener('keydown', async e => {
         if ((e.ctrlKey || e.metaKey) && !e.shiftKey && e.key.toLowerCase() === 'z') {
