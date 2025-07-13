@@ -207,8 +207,10 @@ function addMouseEvents(canvas, ctx, undoStack) {
     });
 }
 
+
 function addTouchEvents(canvas, ctx, undoStack) {
     let drawing = false, lastX = 0, lastY = 0;
+    let currentStroke = null;
 
     canvas.addEventListener('touchstart', e => {
         if (e.touches.length === 1) {
@@ -218,7 +220,12 @@ function addTouchEvents(canvas, ctx, undoStack) {
             window._canvasDrawing = true;
             lastX = (touch.clientX - rect.left) * (canvas.width / rect.width);
             lastY = (touch.clientY - rect.top) * (canvas.height / rect.height);
-            saveState(canvas, undoStack);
+            currentStroke = {
+                color: ctx.strokeStyle,
+                width: ctx.lineWidth,
+                path: [{ x: lastX, y: lastY }],
+                createdAt: new Date().toISOString()
+            };
         }
     }, { passive: false });
 
@@ -236,21 +243,33 @@ function addTouchEvents(canvas, ctx, undoStack) {
         ctx.stroke();
         lastX = x;
         lastY = y;
+        if (currentStroke) {
+            const last = currentStroke.path[currentStroke.path.length - 1];
+            if (!last || last.x !== x || last.y !== y) {
+                currentStroke.path.push({ x, y });
+            }
+        }
     }, { passive: false });
 
-    canvas.addEventListener('touchend', () => {
+    canvas.addEventListener('touchend', async () => {
         if (drawing) {
             drawing = false;
             window._canvasDrawing = false;
-            saveCanvasData(canvas);
+            if (currentStroke && currentStroke.path.length > 1) {
+                await saveCanvasStrokes(currentStroke);
+            }
+            currentStroke = null;
         }
     });
 
-    canvas.addEventListener('touchcancel', () => {
+    canvas.addEventListener('touchcancel', async () => {
         if (drawing) {
             drawing = false;
             window._canvasDrawing = false;
-            saveCanvasData(canvas);
+            if (currentStroke && currentStroke.path.length > 1) {
+                await saveCanvasStrokes(currentStroke);
+            }
+            currentStroke = null;
         }
     });
 }
