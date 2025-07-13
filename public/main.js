@@ -13,10 +13,10 @@ function saveStrokeHistory(stroke, undoStack, redoStack, keepRedo = false) {
 function scheduleSave(stroke) {
     if (!stroke || stroke.path.length <= 1) return;
     strokeQueue.push(stroke);
-    trySaveQueue();
+    queueSave();
 }
 
-async function trySaveQueue() {
+async function queueSave() {
     if (isSaving || strokeQueue.length === 0) return;
 
     isSaving = true;
@@ -131,6 +131,7 @@ function renderStrokes(canvas, ctx, strokes, clearCanvas = false) {
         for (let i = 1; i < path.length; i++) {
             ctx.lineTo(path[i].x, path[i].y);
         }
+
         ctx.stroke();
         ctx.restore();
     }
@@ -182,7 +183,6 @@ function addMouseEvents(canvas, ctx, undoStack, redoStack) {
             saveStrokeHistory(currentStroke, undoStack, redoStack);
             scheduleSave(currentStroke);
         }
-
         currentStroke = null;
     });
 
@@ -194,7 +194,6 @@ function addMouseEvents(canvas, ctx, undoStack, redoStack) {
                 saveStrokeHistory(currentStroke, undoStack, redoStack);
                 scheduleSave(currentStroke);
             }
-
             currentStroke = null;
         }
     });
