@@ -239,6 +239,7 @@ function addMouseEvents(canvas, ctx, undoStack, redoStack) {
     });
 }
 
+
 function addTouchEvents(canvas, ctx, undoStack, redoStack) {
     let drawing = false, lastX = 0, lastY = 0;
     let currentStroke = null;
@@ -258,23 +259,12 @@ function addTouchEvents(canvas, ctx, undoStack, redoStack) {
                 path: [{ x: lastX, y: lastY }],
                 createdAt: new Date().toISOString()
             };
-        } else {
-            drawing = false;
-            window._canvasDrawing = false;
-            // Let two-finger touch start pass through for native pan/zoom
         }
     }, { passive: false });
 
     canvas.addEventListener('touchmove', e => {
-        if (e.touches.length > 1) {
-            // Allow native behavior (2 fingers = pan/zoom)
-            return;
-        }
-
         if (!drawing || e.touches.length !== 1) return;
-
-        e.preventDefault(); // Prevent page scrolling only for single-finger drawing
-
+        e.preventDefault();
         const rect = canvas.getBoundingClientRect();
         const touch = e.touches[0];
         const x = (touch.clientX - rect.left) * (canvas.width / rect.width);
@@ -318,6 +308,7 @@ function addTouchEvents(canvas, ctx, undoStack, redoStack) {
         }
     });
 }
+
 
 function eventListeners(canvas, ctx, undoStack, redoStack) {
     addMouseEvents(canvas, ctx, undoStack, redoStack);
