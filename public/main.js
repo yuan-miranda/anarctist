@@ -192,11 +192,11 @@ function addMouseEvents(canvas, ctx, undoStack, redoStack) {
 
     container.addEventListener('mouseenter', () => {
         if (!isDragging) container.style.cursor = 'crosshair';
-        console.log('mouseenter');
+        // console.log('mouseenter');
     });
     container.addEventListener('mouseleave', () => {
         if (!isDragging) container.style.cursor = '';
-        console.log('mouseleave');
+        // console.log('mouseleave');
     });
     document.addEventListener('mousedown', e => {
         if (e.button === 2) {
@@ -210,7 +210,7 @@ function addMouseEvents(canvas, ctx, undoStack, redoStack) {
             containerStartY = pos.top;
             document.body.style.userSelect = 'none';
         }
-        console.log('mousedown on document:', e.clientX, e.clientY);
+        // console.log('mousedown on document:', e.clientX, e.clientY);
     });
     document.addEventListener('mousemove', e => {
         if (isDragging) {
@@ -220,7 +220,7 @@ function addMouseEvents(canvas, ctx, undoStack, redoStack) {
             container.style.top = (containerStartY + dy) + 'px';
             container.style.transform = '';
         }
-        console.log('mousemove on document:', e.clientX, e.clientY);
+        // console.log('mousemove on document:', e.clientX, e.clientY);
     });
     document.addEventListener('mouseup', e => {
         if (isDragging && e.button === 2) {
@@ -229,7 +229,7 @@ function addMouseEvents(canvas, ctx, undoStack, redoStack) {
             container.style.cursor = 'crosshair';
             document.body.style.userSelect = '';
         }
-        console.log('mouseup on document:', e.clientX, e.clientY);
+        // console.log('mouseup on document:', e.clientX, e.clientY);
     });
 }
 
