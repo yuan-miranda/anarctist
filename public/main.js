@@ -307,6 +307,60 @@ function addTouchEvents(canvas, ctx, undoStack, redoStack) {
             currentStroke = null;
         }
     });
+
+    let isPanning = false, panStartX = 0, panStartY = 0, containerStartX = 0, containerStartY = 0;
+    const container = document.getElementById('canvas-container');
+
+    container.addEventListener('touchstart', e => {
+        if (e.touches.length !== 2) return;
+        e.preventDefault();
+        isPanning = true;
+        panStartX = (e.touches[0].clientX + e.touches[1].clientX) / 2;
+        panStartY = (e.touches[0].clientY + e.touches[1].clientY) / 2;
+
+
+        const pos = getCanvasPos(container);
+        containerStartX = pos.left;
+        containerStartY = pos.top;
+        // document.body.style.cursor = 'grabbing';
+        // container.style.cursor = 'grabbing';
+        // document.body.style.userSelect = 'none';
+    }, { passive: false });
+
+    container.addEventListener('touchmove', e => {
+        if (!isPanning || e.touches.length !== 2) return;
+        e.preventDefault();
+        const currentX = (e.touches[0].clientX + e.touches[1].clientX) / 2;
+        const currentY = (e.touches[0].clientY + e.touches[1].clientY) / 2;
+        const dx = currentX - panStartX;
+        const dy = currentY - panStartY;
+
+
+        container.style.left = (containerStartX + dx) + 'px';
+        container.style.top = (containerStartY + dy) + 'px';
+        container.style.transform = '';
+        // document.body.style.cursor = 'grabbing';
+        // container.style.cursor = 'grabbing';
+        // document.body.style.userSelect = 'none';
+    }, { passive: false });
+
+    container.addEventListener('touchend', e => {
+        if (isPanning && e.touches.length < 2) {
+            isPanning = false;
+            // document.body.style.cursor = 'grab';
+            // container.style.cursor = 'crosshair';
+            // document.body.style.userSelect = '';
+        }
+    });
+
+    container.addEventListener('touchcancel', () => {
+        if (isPanning) {
+            isPanning = false;
+            // document.body.style.cursor = 'grab';
+            // container.style.cursor = 'crosshair';
+            // document.body.style.userSelect = '';
+        }
+    });
 }
 
 

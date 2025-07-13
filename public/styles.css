@@ -17,6 +17,7 @@ body {
     transform: translate(-50%, -50%);
     z-index: 0;
     cursor: grab;
+    touch-action: none
 }
 
 #draw-canvas {
@@ -58,25 +59,3 @@ h1 {
     margin: 1rem;
     color: #333;
 }
-
-/* @media (max-width: 50rem),
-(max-height: 50rem) {
-
-    html,
-    body {
-        height: 100%;
-    }
-
-
-    #canvas-container {
-        width: 100vw;
-        height: 100vh;
-        overflow-x: scroll;
-        overflow-y: scroll;
-        border: 1px solid #ccc;
-    }
-
-    #draw-canvas {
-        border: none;
-    }
-} */
