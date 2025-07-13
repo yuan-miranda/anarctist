@@ -264,7 +264,7 @@ function addTouchEvents(canvas, ctx, undoStack, redoStack) {
 
     canvas.addEventListener('touchmove', e => {
         if (!drawing || e.touches.length !== 1) return;
-        e.preventDefault();
+        // e.preventDefault();
         const rect = canvas.getBoundingClientRect();
         const touch = e.touches[0];
         const x = (touch.clientX - rect.left) * (canvas.width / rect.width);
