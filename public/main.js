@@ -536,8 +536,8 @@ document.addEventListener('DOMContentLoaded', async () => {
     setInterval(async () => {
         if (!window._canvasDrawing) {
             counter++;
-            const forceClear = counter % 5 === 0;
+            const forceClear = counter % 3 === 0;
             await loadCanvasStrokes(canvas, ctx, forceClear);
         }
-    }, 1000);
+    }, 5000);
 });
