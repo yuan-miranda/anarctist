@@ -7,6 +7,11 @@ const client = createClient({
     authToken: process.env.TURSO_AUTH_TOKEN!
 });
 
+function compressPath(path: any[]) {
+    // "100,150;101,151" from [{x: 100, y: 150}, {x: 101, y: 151}]
+    return path.map((point: { x: any; y: any; }) => `${point.x},${point.y}`).join(';');
+}
+
 export default async function handler(req: VercelRequest, res: VercelResponse) {
     if (req.method !== 'GET') {
         return res.status(405).json({ error: 'Method Not Allowed' });
@@ -21,7 +26,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         const strokes = result.rows.map((row: any) => {
             const path = JSON.parse(row.path);
             return {
-                path,
+                path: compressPath(path),
                 color: row.color,
                 width: row.width,
                 createdAt: row.created_at,

@@ -84,13 +84,27 @@ async function saveCanvasStrokes(stroke) {
     }
 }
 
+function decompressPath(pathStr) {
+    return pathStr.split(';').map(pair => {
+        const [x, y] = pair.split(',').map(Number);
+        return { x, y };
+    });
+}
+
 async function loadCanvasStrokes(canvas, ctx, clearCanvas = true) {
     try {
         const response = await fetch('/api/load_strokes');
         const data = await response.json();
         if (!response.ok) return console.error(data.error);
 
-        renderStrokes(canvas, ctx, data.strokes, clearCanvas);
+        const decompressedPath = data.strokes.map(stroke => {
+            return {
+                ...stroke,
+                path: decompressPath(stroke.path)
+            };
+        });
+
+        renderStrokes(canvas, ctx, decompressedPath, clearCanvas);
     } catch (e) {
         console.error(e);
     }
