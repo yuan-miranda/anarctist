@@ -423,16 +423,12 @@ function eventListeners(canvas, ctx, undoStack, redoStack) {
         }
     });
 
-    document.getElementById('loadStrokes').addEventListener('click', async () => {
-        await loadCanvasStrokes(canvas, ctx);
-    });
-
-    document.getElementById('clearCanvas').addEventListener('click', async () => {
-        ctx.clearRect(0, 0, canvas.width, canvas.height);
-        undoStack.length = 0;
-        redoStack.length = 0;
-        await deleteCanvasStrokes(null, true);
-    });
+    // document.getElementById('clearCanvas').addEventListener('click', async () => {
+    //     ctx.clearRect(0, 0, canvas.width, canvas.height);
+    //     undoStack.length = 0;
+    //     redoStack.length = 0;
+    //     await deleteCanvasStrokes(null, true);
+    // });
 
     document.getElementById('saveCanvas').addEventListener('click', async () => {
         const timestamp = new Date().toISOString();
