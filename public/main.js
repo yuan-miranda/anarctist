@@ -64,14 +64,36 @@ async function loadCanvasData(canvas, ctx) {
     return; // ignore for legacy support
 }
 
+function compressPath(path) {
+    return path.map(p => `${p.x},${p.y}`).join(';');
+}
+
+function decompressPath(pathStr) {
+    try {
+        const parsed = JSON.parse(pathStr);
+        if (Array.isArray(parsed)) return parsed;
+    } catch (e) {
+
+        return pathStr.split(';').map(pair => {
+            const [x, y] = pair.split(',').map(Number);
+            return { x, y };
+        });
+    }
+}
+
 async function saveCanvasStrokes(stroke) {
     try {
+        const compressedPath = {
+            ...stroke,
+            path: compressPath(stroke.path)
+        }
+
         const response = await fetch('/api/save_stroke', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json'
             },
-            body: JSON.stringify(stroke)
+            body: JSON.stringify(compressedPath)
         });
 
         const data = await response.json();
@@ -90,7 +112,14 @@ async function loadCanvasStrokes(canvas, ctx, clearCanvas = true) {
         const data = await response.json();
         if (!response.ok) return console.error(data.error);
 
-        renderStrokes(canvas, ctx, data.strokes, clearCanvas);
+        const decompressedPath = data.strokes.map(stroke => {
+            return {
+                ...stroke,
+                path: decompressPath(stroke.path)
+            };
+        });
+
+        renderStrokes(canvas, ctx, decompressedPath, clearCanvas);
     } catch (e) {
         console.error(e);
     }
