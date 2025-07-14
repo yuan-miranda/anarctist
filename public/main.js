@@ -64,36 +64,14 @@ async function loadCanvasData(canvas, ctx) {
     return; // ignore for legacy support
 }
 
-function compressPath(path) {
-    return path.map(p => `${p.x},${p.y}`).join(';');
-}
-
-function decompressPath(pathStr) {
-    try {
-        const parsed = JSON.parse(pathStr);
-        if (Array.isArray(parsed)) return parsed;
-    } catch (e) {
-
-        return pathStr.split(';').map(pair => {
-            const [x, y] = pair.split(',').map(Number);
-            return { x, y };
-        });
-    }
-}
-
 async function saveCanvasStrokes(stroke) {
     try {
-        const compressedPath = {
-            ...stroke,
-            path: compressPath(stroke.path)
-        }
-
-        const response = await fetch('/api/save_stroke/save_stroke', {
+        const response = await fetch('/api/save_stroke', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json'
             },
-            body: JSON.stringify(compressedPath)
+            body: JSON.stringify(stroke)
         });
 
         const data = await response.json();
@@ -108,18 +86,11 @@ async function saveCanvasStrokes(stroke) {
 
 async function loadCanvasStrokes(canvas, ctx, clearCanvas = true) {
     try {
-        const response = await fetch('/api/load_strokes/load_strokes');
+        const response = await fetch('/api/load_strokes');
         const data = await response.json();
         if (!response.ok) return console.error(data.error);
 
-        const decompressedPath = data.strokes.map(stroke => {
-            return {
-                ...stroke,
-                path: decompressPath(stroke.path)
-            };
-        });
-
-        renderStrokes(canvas, ctx, decompressedPath, clearCanvas);
+        renderStrokes(canvas, ctx, data.strokes, clearCanvas);
     } catch (e) {
         console.error(e);
     }
@@ -127,7 +98,7 @@ async function loadCanvasStrokes(canvas, ctx, clearCanvas = true) {
 
 async function deleteCanvasStrokes(id, deleteAll = false) {
     try {
-        const response = await fetch('/api/delete_stroke/delete_stroke', {
+        const response = await fetch('/api/delete_stroke', {
             method: 'DELETE',
             headers: {
                 'Content-Type': 'application/json'
