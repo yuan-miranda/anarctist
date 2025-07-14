@@ -167,12 +167,14 @@ function renderStrokes(canvas, ctx, strokes, clearCanvas = false) {
 
 function zoomIn(canvas, zoomInButton, zoomOutButton) {
     zoomLevel = Math.min(zoomLevel + ZOOM_STEP, MAX_ZOOM);
+    // zoomLevel = Math.round(zoomLevel * 10) / 10;
     applyZoom(canvas);
     updateZoomButtons(zoomInButton, zoomOutButton);
 }
 
 function zoomOut(canvas, zoomInButton, zoomOutButton) {
     zoomLevel = Math.max(zoomLevel - ZOOM_STEP, MIN_ZOOM);
+    zoomLevel = Math.round(zoomLevel * 10) / 10;
     applyZoom(canvas);
     updateZoomButtons(zoomInButton, zoomOutButton);
 }
@@ -485,15 +487,12 @@ document.addEventListener('DOMContentLoaded', async () => {
     document.body.style.cursor = 'grab';
 
     eventListeners(canvas, ctx, undoStack, redoStack);
-    applyZoom(canvas);
     loadCanvasPosition();
     await loadCanvasStrokes(canvas, ctx);
 
+    applyZoom(canvas);
     updateUndoRedoButtons(undoStack, redoStack);
-
-
-    zoomInButton.disabled = zoomLevel >= MAX_ZOOM;
-    zoomOutButton.disabled = zoomLevel <= MIN_ZOOM;
+    updateZoomButtons(zoomInButton, zoomOutButton);
 
     let counter = 0;
     setInterval(async () => {
