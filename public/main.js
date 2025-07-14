@@ -1,10 +1,10 @@
 const strokeQueue = [];
 let isSaving = false;
 
-let zoomLevel = 1;
 const ZOOM_STEP = 0.1;
 const MAX_ZOOM = 3;
 const MIN_ZOOM = 0.3;
+let zoomLevel = MIN_ZOOM;
 
 function applyZoom(canvas) {
     canvas.style.transform = `scale(${zoomLevel})`;
@@ -125,11 +125,11 @@ async function undoStroke(canvas, ctx, undoStack, redoStack) {
     if (!undoStack.length || window._canvasDrawing) return;
 
     const lastStroke = undoStack.pop();
-    console.log('Undoing stroke:', lastStroke);
     redoStack.push(lastStroke);
 
     if (lastStroke.id) await deleteCanvasStrokes(lastStroke.id);
     await loadCanvasStrokes(canvas, ctx);
+    updateUndoRedoButtons(undoStack, redoStack);
 }
 
 async function redoStroke(canvas, ctx, undoStack, redoStack) {
@@ -140,6 +140,7 @@ async function redoStroke(canvas, ctx, undoStack, redoStack) {
 
     undoStack.push(lastStroke);
     await loadCanvasStrokes(canvas, ctx);
+    updateUndoRedoButtons(undoStack, redoStack);
 }
 
 function renderStrokes(canvas, ctx, strokes, clearCanvas = false) {
@@ -162,6 +163,28 @@ function renderStrokes(canvas, ctx, strokes, clearCanvas = false) {
         ctx.stroke();
         ctx.restore();
     }
+}
+
+function zoomIn(canvas, zoomInButton, zoomOutButton) {
+    zoomLevel = Math.min(zoomLevel + ZOOM_STEP, MAX_ZOOM);
+    applyZoom(canvas);
+    updateZoomButtons(zoomInButton, zoomOutButton);
+}
+
+function zoomOut(canvas, zoomInButton, zoomOutButton) {
+    zoomLevel = Math.max(zoomLevel - ZOOM_STEP, MIN_ZOOM);
+    applyZoom(canvas);
+    updateZoomButtons(zoomInButton, zoomOutButton);
+}
+
+function updateUndoRedoButtons(undoStack, redoStack) {
+    document.getElementById('undoStroke').disabled = undoStack.length === 0;
+    document.getElementById('redoStroke').disabled = redoStack.length === 0;
+}
+
+function updateZoomButtons(zoomInButton, zoomOutButton) {
+    zoomInButton.disabled = zoomLevel >= MAX_ZOOM;
+    zoomOutButton.disabled = zoomLevel <= MIN_ZOOM;
 }
 
 function addMouseEvents(canvas, ctx, undoStack, redoStack) {
@@ -396,6 +419,10 @@ function eventListeners(canvas, ctx, undoStack, redoStack) {
         }
     });
 
+    document.getElementById('loadStrokes').addEventListener('click', async () => {
+        await loadCanvasStrokes(canvas, ctx);
+    });
+
     document.getElementById('clearCanvas').addEventListener('click', async () => {
         ctx.clearRect(0, 0, canvas.width, canvas.height);
         undoStack.length = 0;
@@ -403,8 +430,12 @@ function eventListeners(canvas, ctx, undoStack, redoStack) {
         await deleteCanvasStrokes(null, true);
     });
 
-    document.getElementById('loadStrokes').addEventListener('click', async () => {
-        await loadCanvasStrokes(canvas, ctx);
+    document.getElementById('saveCanvas').addEventListener('click', async () => {
+        const timestamp = new Date().toISOString();
+        const link = document.createElement('a');
+        link.download = `AnarctistCanvas_${timestamp}.png`;
+        link.href = canvas.toDataURL('image/png');
+        link.click();
     });
 
     document.getElementById('undoStroke').addEventListener('click', async () => {
@@ -419,19 +450,11 @@ function eventListeners(canvas, ctx, undoStack, redoStack) {
     const zoomOutButton = document.getElementById('zoomOut');
 
     zoomInButton.addEventListener('click', () => {
-        zoomLevel = Math.min(zoomLevel + ZOOM_STEP, MAX_ZOOM);
-        applyZoom(canvas);
-
-        zoomInButton.disabled = zoomLevel >= MAX_ZOOM;
-        zoomOutButton.disabled = zoomLevel <= MIN_ZOOM;
+        zoomIn(canvas, zoomInButton, zoomOutButton);
     });
 
     zoomOutButton.addEventListener('click', () => {
-        zoomLevel = Math.max(zoomLevel - ZOOM_STEP, MIN_ZOOM);
-        applyZoom(canvas);
-
-        zoomInButton.disabled = zoomLevel >= MAX_ZOOM;
-        zoomOutButton.disabled = zoomLevel <= MIN_ZOOM;
+        zoomOut(canvas, zoomInButton, zoomOutButton);
     });
 
     document.addEventListener('contextmenu', e => e.preventDefault());
@@ -439,6 +462,9 @@ function eventListeners(canvas, ctx, undoStack, redoStack) {
 
 document.addEventListener('DOMContentLoaded', async () => {
     const canvas = document.getElementById('draw-canvas');
+    const zoomInButton = document.getElementById('zoomIn');
+    const zoomOutButton = document.getElementById('zoomOut');
+
     const ctx = canvas.getContext('2d');
     let undoStack = [], redoStack = [];
 
@@ -450,8 +476,15 @@ document.addEventListener('DOMContentLoaded', async () => {
     document.body.style.cursor = 'grab';
 
     eventListeners(canvas, ctx, undoStack, redoStack);
+    applyZoom(canvas);
     loadCanvasPosition();
     await loadCanvasStrokes(canvas, ctx);
+
+    updateUndoRedoButtons(undoStack, redoStack);
+
+
+    zoomInButton.disabled = zoomLevel >= MAX_ZOOM;
+    zoomOutButton.disabled = zoomLevel <= MIN_ZOOM;
 
     let counter = 0;
     setInterval(async () => {
