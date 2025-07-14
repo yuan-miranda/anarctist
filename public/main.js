@@ -496,6 +496,24 @@ function addTouchEvents(canvas, ctx, undoStack, redoStack) {
     }, { passive: false });
 }
 
+function saveCanvasImage(canvas) {
+    const timestamp = new Date().toISOString();
+    const tempCanvas = document.createElement('canvas');
+    const tempCtx = tempCanvas.getContext('2d');
+
+    tempCanvas.width = canvas.width;
+    tempCanvas.height = canvas.height;
+
+    tempCtx.fillStyle = '#fff';
+    tempCtx.fillRect(0, 0, tempCanvas.width, tempCanvas.height);
+    tempCtx.drawImage(canvas, 0, 0);
+
+    const link = document.createElement('a');
+    link.download = `AnarctistCanvas_${timestamp}.png`;
+    link.href = tempCanvas.toDataURL('image/png');
+    link.click();
+}
+
 function eventListeners(canvas, ctx, undoStack, redoStack) {
     addMouseEvents(canvas, ctx, undoStack, redoStack);
     addTouchEvents(canvas, ctx, undoStack, redoStack);
@@ -516,24 +534,6 @@ function eventListeners(canvas, ctx, undoStack, redoStack) {
     //     redoStack.length = 0;
     //     await deleteCanvasStrokes(null, true);
     // });
-
-    document.getElementById('saveCanvas').addEventListener('click', async () => {
-        const timestamp = new Date().toISOString();
-        const tempCanvas = document.createElement('canvas');
-        const tempCtx = tempCanvas.getContext('2d');
-
-        tempCanvas.width = canvas.width;
-        tempCanvas.height = canvas.height;
-
-        tempCtx.fillStyle = '#fff';
-        tempCtx.fillRect(0, 0, tempCanvas.width, tempCanvas.height);
-        tempCtx.drawImage(canvas, 0, 0);
-
-        const link = document.createElement('a');
-        link.download = `AnarctistCanvas_${timestamp}.png`;
-        link.href = tempCanvas.toDataURL('image/png');
-        link.click();
-    });
 
     document.getElementById('undoStroke').addEventListener('click', async () => {
         await undoStroke(canvas, ctx, undoStack, redoStack);
@@ -557,15 +557,21 @@ function eventListeners(canvas, ctx, undoStack, redoStack) {
     const centerCanvasBtn = document.getElementById('centerCanvas');
     const centerCanvasMinBtn = document.getElementById('centerCanvasMin');
     if (centerCanvasBtn) {
-        centerCanvasBtn.addEventListener('click', () => {
-            centerCanvas(canvas);
-        });
+        centerCanvasBtn.addEventListener('click', () => centerCanvas(canvas));
     }
     if (centerCanvasMinBtn) {
-        centerCanvasMinBtn.addEventListener('click', () => {
-            centerCanvas(canvas);
-        });
+        centerCanvasMinBtn.addEventListener('click', () => centerCanvas(canvas));
     }
+
+    const saveCanvasBtn = document.getElementById('saveCanvas');
+    const saveCanvasMinBtn = document.getElementById('saveCanvasMin');
+    if (saveCanvasBtn) {
+        saveCanvasBtn.addEventListener('click', () => saveCanvasImage(canvas));
+    }
+    if (saveCanvasMinBtn) {
+        saveCanvasMinBtn.addEventListener('click', () => saveCanvasImage(canvas));
+    }
+
 
     document.getElementById('decreaseStrokeSize').addEventListener('click', () => {
         const strokeSizeSpan = document.getElementById('strokeSize');
