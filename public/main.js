@@ -436,11 +436,22 @@ function eventListeners(canvas, ctx, undoStack, redoStack) {
 
     document.getElementById('saveCanvas').addEventListener('click', async () => {
         const timestamp = new Date().toISOString();
+        const tempCanvas = document.createElement('canvas');
+        const tempCtx = tempCanvas.getContext('2d');
+
+        tempCanvas.width = canvas.width;
+        tempCanvas.height = canvas.height;
+
+        tempCtx.fillStyle = '#fff';
+        tempCtx.fillRect(0, 0, tempCanvas.width, tempCanvas.height);
+        tempCtx.drawImage(canvas, 0, 0);
+
         const link = document.createElement('a');
         link.download = `AnarctistCanvas_${timestamp}.png`;
-        link.href = canvas.toDataURL('image/png');
+        link.href = tempCanvas.toDataURL('image/png');
         link.click();
     });
+
 
     document.getElementById('undoStroke').addEventListener('click', async () => {
         await undoStroke(canvas, ctx, undoStack, redoStack);
