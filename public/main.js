@@ -233,6 +233,7 @@ function addMouseEvents(canvas, ctx, undoStack, redoStack) {
         if (currentStroke && currentStroke.path.length >= 1) {
             saveStrokeHistory(currentStroke, undoStack, redoStack);
             scheduleSave(currentStroke);
+            updateUndoRedoButtons(undoStack, redoStack);
         }
         currentStroke = null;
     });
@@ -244,6 +245,7 @@ function addMouseEvents(canvas, ctx, undoStack, redoStack) {
             if (currentStroke && currentStroke.path.length >= 1) {
                 saveStrokeHistory(currentStroke, undoStack, redoStack);
                 scheduleSave(currentStroke);
+                updateUndoRedoButtons(undoStack, redoStack);
             }
             currentStroke = null;
         }
@@ -344,6 +346,7 @@ function addTouchEvents(canvas, ctx, undoStack, redoStack) {
             if (currentStroke && currentStroke.path.length >= 1) {
                 saveStrokeHistory(currentStroke, undoStack, redoStack);
                 scheduleSave(currentStroke);
+                updateUndoRedoButtons(undoStack, redoStack);
             }
             currentStroke = null;
         }
@@ -356,6 +359,7 @@ function addTouchEvents(canvas, ctx, undoStack, redoStack) {
             if (currentStroke && currentStroke.path.length >= 1) {
                 saveStrokeHistory(currentStroke, undoStack, redoStack);
                 scheduleSave(currentStroke);
+                updateUndoRedoButtons(undoStack, redoStack);
             }
             currentStroke = null;
         }
