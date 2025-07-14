@@ -88,7 +88,7 @@ async function saveCanvasStrokes(stroke) {
             path: compressPath(stroke.path)
         }
 
-        const response = await fetch('/api/save_stroke', {
+        const response = await fetch('/api/save_stroke/save_stroke', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json'
@@ -108,7 +108,7 @@ async function saveCanvasStrokes(stroke) {
 
 async function loadCanvasStrokes(canvas, ctx, clearCanvas = true) {
     try {
-        const response = await fetch('/api/load_strokes');
+        const response = await fetch('/api/load_strokes/load_strokes');
         const data = await response.json();
         if (!response.ok) return console.error(data.error);
 
@@ -127,7 +127,7 @@ async function loadCanvasStrokes(canvas, ctx, clearCanvas = true) {
 
 async function deleteCanvasStrokes(id, deleteAll = false) {
     try {
-        const response = await fetch('/api/delete_stroke', {
+        const response = await fetch('/api/delete_stroke/delete_stroke', {
             method: 'DELETE',
             headers: {
                 'Content-Type': 'application/json'
