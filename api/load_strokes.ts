@@ -28,6 +28,9 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
             };
         });
 
+        // cache header for 2 seconds, with stale-while-revalidate for 10 seconds
+        res.setHeader('Cache-Control', 's-maxage=2, stale-while-revalidate=10');
+
         res.status(200).json({ strokes });
     } catch (error) {
         console.error('Error loading canvas strokes:', error);
