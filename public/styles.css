@@ -23,7 +23,7 @@ body {
 #draw-canvas {
     display: block;
     background: #fff;
-    border: 1px solid #ccc;
+    border: 32px solid #ccc;
 }
 
 .canvas-actions {

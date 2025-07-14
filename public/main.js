@@ -11,6 +11,25 @@ function applyZoom(canvas) {
     canvas.style.transformOrigin = 'center center';
 }
 
+function centerCanvas(canvas) {
+    const container = document.getElementById('canvas-container');
+    zoomLevel = MIN_ZOOM;
+    applyZoom(canvas);
+
+    container.style.left = '50%';
+    container.style.top = '50%';
+    container.style.transform = 'translate(-50%, -50%)';
+
+    saveCanvasPosition(container.style.left, container.style.top);
+
+    // Update zoom button states
+    const zoomInButton = document.getElementById('zoomIn');
+    const zoomOutButton = document.getElementById('zoomOut');
+    updateZoomButtons(zoomInButton, zoomOutButton);
+}
+
+
+
 function saveStrokeHistory(stroke, undoStack) {
     // if (!keepRedo) redoStack.length = 0;
     if (stroke && stroke.path && stroke.path.length > 1) {
@@ -467,6 +486,11 @@ function eventListeners(canvas, ctx, undoStack, redoStack) {
     zoomOutButton.addEventListener('click', () => {
         zoomOut(canvas, zoomInButton, zoomOutButton);
     });
+
+    document.getElementById('centerCanvas').addEventListener('click', () => {
+        centerCanvas(canvas);
+    });
+
 
     document.addEventListener('contextmenu', e => e.preventDefault());
 }
