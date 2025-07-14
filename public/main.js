@@ -543,5 +543,5 @@ document.addEventListener('DOMContentLoaded', async () => {
             lastStrokeId = await loadCanvasStrokes(canvas, ctx, clearCanvas, lastStrokeId);
             localStorage.setItem('lastStrokeId', lastStrokeId);
         }
-    }, 1000);
+    }, 2000);
 });

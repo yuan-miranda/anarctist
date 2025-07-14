@@ -52,8 +52,9 @@ body {
 
 .canvas-actions button,
 .stroke-actions button,
-.zoom-actions button {
-    padding: 0.8rem;
+.zoom-actions button,
+.canvas-actions-minified button {
+    padding: 1rem;
     background: #fff;
     border: 1px solid #ccc;
     border-radius: 4px;
@@ -73,3 +74,17 @@ button:disabled {
     opacity: 0.5;
     cursor: not-allowed;
 }
+
+.canvas-actions-minified {
+    display: none;
+}
+
+@media (max-width: 50rem) {
+    .canvas-actions > button {
+        display: none;
+    }
+    .canvas-actions-minified {
+        display: block;
+    }
+}
+
