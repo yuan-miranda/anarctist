@@ -8,7 +8,7 @@ let zoomLevel = MIN_ZOOM;
 
 function applyZoom(canvas) {
     canvas.style.transform = `scale(${zoomLevel})`;
-    canvas.style.transformOrigin = '0 0';
+    canvas.style.transformOrigin = 'center center';
 }
 
 function saveStrokeHistory(stroke, undoStack, redoStack, keepRedo = false) {
