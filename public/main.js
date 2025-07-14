@@ -11,8 +11,8 @@ function applyZoom(canvas) {
     canvas.style.transformOrigin = 'center center';
 }
 
-function saveStrokeHistory(stroke, undoStack, redoStack, keepRedo = false) {
-    if (!keepRedo) redoStack.length = 0;
+function saveStrokeHistory(stroke, undoStack) {
+    // if (!keepRedo) redoStack.length = 0;
     if (stroke && stroke.path && stroke.path.length > 1) {
         undoStack.push(stroke);
         console.log('Saved stroke:', stroke);
@@ -188,6 +188,8 @@ function updateZoomButtons(zoomInButton, zoomOutButton) {
 }
 
 function addMouseEvents(canvas, ctx, undoStack, redoStack) {
+    const container = document.getElementById('canvas-container');
+    let isDragging = false, dragStartX = 0, dragStartY = 0, containerStartX = 0, containerStartY = 0;
     let currentStroke = null;
     let drawing = false;
     window._canvasDrawing = false;
@@ -230,8 +232,8 @@ function addMouseEvents(canvas, ctx, undoStack, redoStack) {
         drawing = false;
         window._canvasDrawing = false;
 
-        if (currentStroke && currentStroke.path.length >= 1) {
-            saveStrokeHistory(currentStroke, undoStack, redoStack);
+        if (currentStroke && currentStroke.path.length > 1) {
+            saveStrokeHistory(currentStroke, undoStack);
             scheduleSave(currentStroke);
             updateUndoRedoButtons(undoStack, redoStack);
         }
@@ -242,8 +244,8 @@ function addMouseEvents(canvas, ctx, undoStack, redoStack) {
         if (drawing) {
             drawing = false;
             window._canvasDrawing = false;
-            if (currentStroke && currentStroke.path.length >= 1) {
-                saveStrokeHistory(currentStroke, undoStack, redoStack);
+            if (currentStroke && currentStroke.path.length > 1) {
+                saveStrokeHistory(currentStroke, undoStack);
                 scheduleSave(currentStroke);
                 updateUndoRedoButtons(undoStack, redoStack);
             }
@@ -252,9 +254,6 @@ function addMouseEvents(canvas, ctx, undoStack, redoStack) {
     });
 
     // right-click panning functionality
-    const container = document.getElementById('canvas-container');
-    let isDragging = false, dragStartX = 0, dragStartY = 0, containerStartX = 0, containerStartY = 0;
-
     container.addEventListener('mouseenter', () => {
         if (!isDragging) container.style.cursor = 'crosshair';
     });
@@ -295,6 +294,8 @@ function addMouseEvents(canvas, ctx, undoStack, redoStack) {
 }
 
 function addTouchEvents(canvas, ctx, undoStack, redoStack) {
+    const container = document.getElementById('canvas-container');
+    let isPanning = false, panStartX = 0, panStartY = 0, containerStartX = 0, containerStartY = 0;
     let drawing = false, lastX = 0, lastY = 0;
     let currentStroke = null;
 
@@ -343,8 +344,8 @@ function addTouchEvents(canvas, ctx, undoStack, redoStack) {
         if (drawing) {
             drawing = false;
             window._canvasDrawing = false;
-            if (currentStroke && currentStroke.path.length >= 1) {
-                saveStrokeHistory(currentStroke, undoStack, redoStack);
+            if (currentStroke && currentStroke.path.length > 1) {
+                saveStrokeHistory(currentStroke, undoStack);
                 scheduleSave(currentStroke);
                 updateUndoRedoButtons(undoStack, redoStack);
             }
@@ -356,8 +357,8 @@ function addTouchEvents(canvas, ctx, undoStack, redoStack) {
         if (drawing) {
             drawing = false;
             window._canvasDrawing = false;
-            if (currentStroke && currentStroke.path.length >= 1) {
-                saveStrokeHistory(currentStroke, undoStack, redoStack);
+            if (currentStroke && currentStroke.path.length > 1) {
+                saveStrokeHistory(currentStroke, undoStack);
                 scheduleSave(currentStroke);
                 updateUndoRedoButtons(undoStack, redoStack);
             }
@@ -366,9 +367,6 @@ function addTouchEvents(canvas, ctx, undoStack, redoStack) {
     });
 
     // 2-finger panning functionality
-    const container = document.getElementById('canvas-container');
-    let isPanning = false, panStartX = 0, panStartY = 0, containerStartX = 0, containerStartY = 0;
-
     document.addEventListener('touchstart', e => {
         if (e.touches.length !== 2) return;
         e.preventDefault();
