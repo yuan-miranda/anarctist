@@ -50,11 +50,50 @@ body {
     z-index: 100;
 }
 
+.color-actions {
+    position: fixed;
+    top: 50%;
+    transform: translateY(-50%);
+    left: 10px;
+    margin: 1rem;
+    z-index: 100;
+}
+
+.color-options {
+    display: grid;
+    grid-template-columns: repeat(2, auto);
+    gap: 0.4rem;
+    margin-top: 0.4rem;
+}
+
+.color-actions .color-btn,
+.color-actions #toggleCollapse,
+.color-options .color-btn,
+.color-options input[type="color"],
+.color-options #decreaseStrokeSize,
+.color-options #increaseStrokeSize,
+.color-options #strokeSize {
+    width: 32px;
+    height: 32px;
+    padding: 0;
+    border: 1px solid #ccc;
+    font-size: 1rem;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.color-btn.selected {
+    border: 2px solid #333;
+    box-shadow: 0 0 0 2px white;
+}
+
 .canvas-actions button,
 .stroke-actions button,
 .zoom-actions button,
 .canvas-actions-minified button {
-    padding: 1rem;
+    padding: 0.8rem 1rem;
     background: #fff;
     border: 1px solid #ccc;
     border-radius: 4px;
@@ -70,21 +109,25 @@ h1 {
     color: #333;
 }
 
+.canvas-actions-minified {
+    display: none;
+}
+
 button:disabled {
     opacity: 0.5;
     cursor: not-allowed;
 }
 
-.canvas-actions-minified {
+.color-options.collapsed {
     display: none;
 }
 
 @media (max-width: 50rem) {
-    .canvas-actions > button {
+    .canvas-actions>button {
         display: none;
     }
+
     .canvas-actions-minified {
         display: block;
     }
 }
-

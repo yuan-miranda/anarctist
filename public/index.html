@@ -14,12 +14,12 @@
         <canvas id="draw-canvas" width="4096" height="4096"></canvas>
     </div>
     <div class="canvas-actions">
-        <button id="centerCanvas">Center Canvas</button>
-        <button id="saveCanvas">Save Canvas</button>
+        <button id="centerCanvas" title="Center Canvas">Center Canvas</button>
+        <button id="saveCanvas" title="Save Canvas">Save Canvas</button>
 
         <!-- minified version -->
         <div class="canvas-actions-minified">
-            <button id="centerCanvas">
+            <button id="centerCanvas" title="Center Canvas">
                 <svg width="24" height="24" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
                     <path
                         d="M42 20C42 34 24 46 24 46C24 46 6 34 6 20C6 15.2261 7.89642 10.6477 11.2721 7.27208C14.6477 3.89642 19.2261 2 24 2C28.7739 2 33.3523 3.89642 36.7279 7.27208C40.1036 10.6477 42 15.2261 42 20Z"
@@ -30,7 +30,7 @@
                 </svg>
 
             </button>
-            <button id="saveCanvas">
+            <button id="saveCanvas" title="Save Canvas">
                 <svg width="24" height="24" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
                     <path
                         d="M42 30V38C42 39.0609 41.5786 40.0783 40.8284 40.8284C40.0783 41.5786 39.0609 42 38 42H10C8.93913 42 7.92172 41.5786 7.17157 40.8284C6.42143 40.0783 6 39.0609 6 38V30M14 20L24 30M24 30L34 20M24 30V6"
@@ -41,14 +41,14 @@
         </div>
     </div>
     <div class="stroke-actions">
-        <button id="undoStroke">
+        <button id="undoStroke" title="Undo">
             <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
                 <path
                     d="M7 19V17H14.1C15.15 17 16.0625 16.6667 16.8375 16C17.6125 15.3333 18 14.5 18 13.5C18 12.5 17.6125 11.6667 16.8375 11C16.0625 10.3333 15.15 10 14.1 10H7.8L10.4 12.6L9 14L4 9L9 4L10.4 5.4L7.8 8H14.1C15.7167 8 17.1042 8.525 18.2625 9.575C19.4208 10.625 20 11.9333 20 13.5C20 15.0667 19.4208 16.375 18.2625 17.425C17.1042 18.475 15.7167 19 14.1 19H7Z"
                     fill="#1D1B20" />
             </svg>
         </button>
-        <button id="redoStroke">
+        <button id="redoStroke" title="Redo">
             <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
                 <path
                     d="M9.9 19C8.28333 19 6.89583 18.475 5.7375 17.425C4.57917 16.375 4 15.0667 4 13.5C4 11.9333 4.57917 10.625 5.7375 9.575C6.89583 8.525 8.28333 8 9.9 8H16.2L13.6 5.4L15 4L20 9L15 14L13.6 12.6L16.2 10H9.9C8.85 10 7.9375 10.3333 7.1625 11C6.3875 11.6667 6 12.5 6 13.5C6 14.5 6.3875 15.3333 7.1625 16C7.9375 16.6667 8.85 17 9.9 17H17V19H9.9Z"
@@ -57,14 +57,14 @@
         </button>
     </div>
     <div class="zoom-actions">
-        <button id="zoomIn">
+        <button id="zoomIn" title="Zoom In">
             <svg width="24" height="24" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
                 <path
                     d="M42 42L33.3 33.3M22 16V28M16 22H28M38 22C38 30.8366 30.8366 38 22 38C13.1634 38 6 30.8366 6 22C6 13.1634 13.1634 6 22 6C30.8366 6 38 13.1634 38 22Z"
                     stroke="#1E1E1E" stroke-width="4" stroke-linecap="round" stroke-linejoin="round" />
             </svg>
         </button>
-        <button id="zoomOut">
+        <button id="zoomOut" title="Zoom Out">
             <svg width="24" height="24" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
                 <path
                     d="M42 42L33.3 33.3M16 22H28M38 22C38 30.8366 30.8366 38 22 38C13.1634 38 6 30.8366 6 22C6 13.1634 13.1634 6 22 6C30.8366 6 38 13.1634 38 22Z"
@@ -72,7 +72,66 @@
             </svg>
         </button>
     </div>
+    <div class="color-actions">
+        <button id="toggleCollapse" style="background: #ffffff;" title="Toggle Collapse">
+            <svg id="collapseDown" width="32" height="32" viewBox="0 0 48 48" fill="none"
+                xmlns="http://www.w3.org/2000/svg">
+                <path d="M12 18L24 30L36 18" stroke="#1E1E1E" stroke-width="4" stroke-linecap="round"
+                    stroke-linejoin="round" />
+            </svg>
+            <svg id="collapseUp" width="32" height="32" viewBox="0 0 48 48" fill="none"
+                xmlns="http://www.w3.org/2000/svg" style="display:none;">
+                <path d="M36 30L24 18L12 30" stroke="#1E1E1E" stroke-width="4" stroke-linecap="round"
+                    stroke-linejoin="round" />
+            </svg>
+        </button>
+        <!-- <span style="display:inline-block; width:32px;"></span> -->
+
+        <div class="color-options">
+            <button class="color-btn" style="background: #000000;" data-color="#000000" title="Black"
+                id="colorBtnDefault"></button>
+            <button class="color-btn" id="eraserStroke" style="background: #ffffff;" data-color="#ffffff"
+                title="Eraser (White)">20</button>
+
+            <button class="color-btn" style="background: #ff0000;" data-color="#ff0000" title="Red"></button>
+            <button class="color-btn" style="background: #ff7f00;" data-color="#ff7f00" title="Orange"></button>
+            <button class="color-btn" style="background: #ffff00;" data-color="#ffff00" title="Yellow"></button>
+            <button class="color-btn" style="background: #00ff00;" data-color="#00ff00" title="Green"></button>
+            <button class="color-btn" style="background: #0000ff;" data-color="#0000ff" title="Blue"></button>
+            <button class="color-btn" style="background: #4b0082;" data-color="#4b0082" title="Indigo"></button>
+            <button class="color-btn" style="background: #8f00ff;" data-color="#8f00ff" title="Violet"></button>
+
+            <input type="color" id="customColor" title="Custom Color" />
+
+            <button id="decreaseStrokeSize" title="Decrease Stroke Width">-</button>
+            <button id="increaseStrokeSize" title="Increase Stroke Width">+</button>
+            <span id="strokeSize" title="Current Stroke Size"
+                style="display: inline-flex; align-items: center; justify-content: center;">2</span>
+        </div>
+    </div>
     <script src="main.js"></script>
+    <script>
+        (function () {
+            const collapseBtn = document.getElementById('toggleCollapse');
+            const colorOptions = document.querySelector('.color-options');
+            const svgDown = document.getElementById('collapseDown');
+            const svgUp = document.getElementById('collapseUp');
+
+            collapseBtn.addEventListener('click', () => {
+                const collapsed = colorOptions.classList.toggle('collapsed');
+                if (collapsed) {
+                    svgDown.style.display = 'none';
+                    svgUp.style.display = '';
+                    collapseBtn.style.border = '2px solid #333';
+                } else {
+                    svgDown.style.display = '';
+                    svgUp.style.display = 'none';
+                    collapseBtn.style.border = '';
+                }
+            });
+        })();
+    </script>
+
 </body>
 
 </html>

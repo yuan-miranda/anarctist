@@ -1,10 +1,67 @@
 const strokeQueue = [];
 let isSaving = false;
 
+let idleTimeout = null;
+const IDLE_TIME = 2 * 60 * 1000;
+
 const ZOOM_STEP = 0.1;
 const MAX_ZOOM = 3;
 const MIN_ZOOM = 0.3;
 let zoomLevel = MIN_ZOOM;
+
+let isEraserMode = false;
+
+function highlightSelectedColor(selectedBtn) {
+    const colorButtons = document.querySelectorAll('.color-btn');
+    colorButtons.forEach(btn => btn.classList.remove('selected'));
+    if (selectedBtn) selectedBtn.classList.add('selected');
+}
+
+function updateLineWidth(ctx) {
+    const strokeSizeSpan = document.getElementById('strokeSize');
+    const eraserStroke = document.getElementById('eraserStroke');
+
+    const size = parseInt(strokeSizeSpan.textContent, 10);
+    ctx.lineWidth = isEraserMode ? size * 10 : size;
+    eraserStroke.textContent = size * 10;
+}
+
+function initColorPicker(ctx) {
+    const colorButtons = document.querySelectorAll('.color-btn');
+    const customColorPicker = document.getElementById('customColor');
+    const strokeSizeSpan = document.getElementById('strokeSize');
+
+    ctx.strokeStyle = '#000';
+    highlightSelectedColor(document.getElementById('colorBtnDefault'));
+
+    // add event listeners to color buttons
+    colorButtons.forEach(btn => {
+        btn.addEventListener('click', () => {
+            ctx.strokeStyle = btn.dataset.color;
+            isEraserMode = (btn.id === 'eraserStroke');
+
+            highlightSelectedColor(btn);
+            updateLineWidth(ctx);
+        });
+    });
+
+    // custom color picker
+    customColorPicker.addEventListener('input', () => {
+        ctx.strokeStyle = customColorPicker.value;
+        isEraserMode = false;
+
+        updateLineWidth(ctx);
+        highlightSelectedColor(null);
+    });
+}
+
+
+function resetIdleTimer() {
+    if (idleTimeout) clearTimeout(idleTimeout);
+    idleTimeout = setTimeout(() => {
+        alert('Ayo bro you still there? You have been idle for 2 minutes.');
+    }, IDLE_TIME);
+}
 
 function applyZoom(canvas) {
     canvas.style.transform = `scale(${zoomLevel})`;
@@ -84,7 +141,7 @@ async function loadCanvasStrokes(canvas, ctx, clearCanvas = true, startAt = 0) {
     try {
         const params = new URLSearchParams();
         params.set('startAt', clearCanvas ? 0 : startAt);
-        
+
         const response = await fetch(`/api/load_strokes?${params.toString()}`);
         const data = await response.json();
         if (!response.ok) return console.error(data.error);
@@ -504,6 +561,31 @@ function eventListeners(canvas, ctx, undoStack, redoStack) {
         centerCanvas(canvas);
     });
 
+    document.getElementById('decreaseStrokeSize').addEventListener('click', () => {
+        const strokeSizeSpan = document.getElementById('strokeSize');
+        let currentSize = parseInt(strokeSizeSpan.textContent, 10);
+        if (currentSize > 1) {
+            currentSize--;
+            strokeSizeSpan.textContent = currentSize;
+            updateLineWidth(ctx);
+        }
+    });
+
+    document.getElementById('increaseStrokeSize').addEventListener('click', () => {
+        const strokeSizeSpan = document.getElementById('strokeSize');
+        let currentSize = parseInt(strokeSizeSpan.textContent, 10);
+        if (currentSize < 20) {
+            currentSize++;
+            strokeSizeSpan.textContent = currentSize;
+            updateLineWidth(ctx);
+        }
+    });
+
+    ['mousemove', 'mousedown', 'keydown', 'touchstart', 'touchmove'].forEach(evt => {
+        window.addEventListener(evt, resetIdleTimer, { passive: true });
+    });
+    resetIdleTimer();
+
     document.addEventListener('contextmenu', e => e.preventDefault());
 
     window.addEventListener('beforeunload', () => {
@@ -526,6 +608,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     document.body.style.cursor = 'grab';
 
+    initColorPicker(ctx);
     eventListeners(canvas, ctx, undoStack, redoStack);
     loadCanvasPosition();
     await loadCanvasStrokes(canvas, ctx);
