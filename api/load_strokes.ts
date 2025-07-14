@@ -17,15 +17,18 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         return res.status(405).json({ error: 'Method Not Allowed' });
     }
 
+    const startAt = parseInt(req.query.startAt as string, 10) || 0;
+
     try {
         const result = await client.execute({
-            sql: 'SELECT * FROM canvas_strokes ORDER BY created_at ASC',
+            sql: 'SELECT * FROM canvas_strokes WHERE id >= ? ORDER BY created_at ASC',
+            args: [startAt],
         });
-
 
         const strokes = result.rows.map((row: any) => {
             const path = JSON.parse(row.path);
             return {
+                id: row.id,
                 path: compressPath(path),
                 color: row.color,
                 width: row.width,

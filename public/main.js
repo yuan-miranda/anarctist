@@ -22,13 +22,10 @@ function centerCanvas(canvas) {
 
     saveCanvasPosition(container.style.left, container.style.top);
 
-    // Update zoom button states
     const zoomInButton = document.getElementById('zoomIn');
     const zoomOutButton = document.getElementById('zoomOut');
     updateZoomButtons(zoomInButton, zoomOutButton);
 }
-
-
 
 function saveStrokeHistory(stroke, undoStack) {
     // if (!keepRedo) redoStack.length = 0;
@@ -54,14 +51,6 @@ async function queueSave() {
         await saveCanvasStrokes(stroke);
     }
     isSaving = false;
-}
-
-async function saveCanvasData(canvas) {
-    return; // ignore for legacy support
-}
-
-async function loadCanvasData(canvas, ctx) {
-    return; // ignore for legacy support
 }
 
 async function saveCanvasStrokes(stroke) {
@@ -91,13 +80,19 @@ function decompressPath(pathStr) {
     });
 }
 
-async function loadCanvasStrokes(canvas, ctx, clearCanvas = true) {
+async function loadCanvasStrokes(canvas, ctx, clearCanvas = true, startAt = 0) {
     try {
-        const response = await fetch('/api/load_strokes');
+        const params = new URLSearchParams();
+        params.set('startAt', clearCanvas ? 0 : startAt);
+        
+        const response = await fetch(`/api/load_strokes?${params.toString()}`);
         const data = await response.json();
         if (!response.ok) return console.error(data.error);
 
-        const decompressedPath = data.strokes.map(stroke => {
+        const strokes = data.strokes || [];
+        if (strokes.length === 0) return startAt;
+
+        const decompressedPath = strokes.map(stroke => {
             return {
                 ...stroke,
                 path: decompressPath(stroke.path)
@@ -105,8 +100,10 @@ async function loadCanvasStrokes(canvas, ctx, clearCanvas = true) {
         });
 
         renderStrokes(canvas, ctx, decompressedPath, clearCanvas);
+        return strokes[strokes.length - 1].id;
     } catch (e) {
         console.error(e);
+        return startAt;
     }
 }
 
@@ -292,9 +289,11 @@ function addMouseEvents(canvas, ctx, undoStack, redoStack) {
     container.addEventListener('mouseenter', () => {
         if (!isDragging) container.style.cursor = 'crosshair';
     });
+
     container.addEventListener('mouseleave', () => {
         if (!isDragging) container.style.cursor = '';
     });
+
     document.addEventListener('mousedown', e => {
         if (e.button === 2) {
             isDragging = true;
@@ -308,6 +307,7 @@ function addMouseEvents(canvas, ctx, undoStack, redoStack) {
             document.body.style.userSelect = 'none';
         }
     });
+
     document.addEventListener('mousemove', e => {
         if (isDragging) {
             const dx = e.clientX - dragStartX;
@@ -317,6 +317,7 @@ function addMouseEvents(canvas, ctx, undoStack, redoStack) {
             container.style.transform = '';
         }
     });
+
     document.addEventListener('mouseup', e => {
         if (isDragging && e.button === 2) {
             isDragging = false;
@@ -441,7 +442,6 @@ function addTouchEvents(canvas, ctx, undoStack, redoStack) {
     }, { passive: false });
 }
 
-
 function eventListeners(canvas, ctx, undoStack, redoStack) {
     addMouseEvents(canvas, ctx, undoStack, redoStack);
     addTouchEvents(canvas, ctx, undoStack, redoStack);
@@ -481,7 +481,6 @@ function eventListeners(canvas, ctx, undoStack, redoStack) {
         link.click();
     });
 
-
     document.getElementById('undoStroke').addEventListener('click', async () => {
         await undoStroke(canvas, ctx, undoStack, redoStack);
     });
@@ -505,8 +504,11 @@ function eventListeners(canvas, ctx, undoStack, redoStack) {
         centerCanvas(canvas);
     });
 
-
     document.addEventListener('contextmenu', e => e.preventDefault());
+
+    window.addEventListener('beforeunload', () => {
+        localStorage.removeItem('lastStrokeId');
+    });
 }
 
 document.addEventListener('DOMContentLoaded', async () => {
@@ -532,12 +534,14 @@ document.addEventListener('DOMContentLoaded', async () => {
     updateUndoRedoButtons(undoStack, redoStack);
     updateZoomButtons(zoomInButton, zoomOutButton);
 
+    let lastStrokeId = parseInt(localStorage.getItem('lastStrokeId'), 10) || 0;
     let counter = 0;
     setInterval(async () => {
         if (!window._canvasDrawing) {
             counter++;
-            const forceClear = counter % 5 === 0;
-            await loadCanvasStrokes(canvas, ctx, forceClear);
+            const clearCanvas = counter % 5 === 0;
+            lastStrokeId = await loadCanvasStrokes(canvas, ctx, clearCanvas, lastStrokeId);
+            localStorage.setItem('lastStrokeId', lastStrokeId);
         }
-    }, 2000);
+    }, 1000);
 });
