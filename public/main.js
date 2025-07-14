@@ -29,9 +29,6 @@ function updateLineWidth(ctx) {
 function initColorPicker(ctx) {
     const colorButtons = document.querySelectorAll('.color-btn');
     const customColorPicker = document.getElementById('customColor');
-    const strokeSizeSpan = document.getElementById('strokeSize');
-
-    ctx.strokeStyle = '#000';
     highlightSelectedColor(document.getElementById('colorBtnDefault'));
 
     // add event listeners to color buttons
@@ -557,9 +554,18 @@ function eventListeners(canvas, ctx, undoStack, redoStack) {
         zoomOut(canvas, zoomInButton, zoomOutButton);
     });
 
-    document.getElementById('centerCanvas').addEventListener('click', () => {
-        centerCanvas(canvas);
-    });
+    const centerCanvasBtn = document.getElementById('centerCanvas');
+    const centerCanvasMinBtn = document.getElementById('centerCanvasMin');
+    if (centerCanvasBtn) {
+        centerCanvasBtn.addEventListener('click', () => {
+            centerCanvas(canvas);
+        });
+    }
+    if (centerCanvasMinBtn) {
+        centerCanvasMinBtn.addEventListener('click', () => {
+            centerCanvas(canvas);
+        });
+    }
 
     document.getElementById('decreaseStrokeSize').addEventListener('click', () => {
         const strokeSizeSpan = document.getElementById('strokeSize');
