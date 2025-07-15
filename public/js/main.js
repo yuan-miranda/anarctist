@@ -652,8 +652,8 @@ document.addEventListener('DOMContentLoaded', async () => {
             counter++;
             const clearCanvas = counter % 5 === 0;
 
-            const newLastStrokeRowId = await loadCanvasStrokes(canvas, ctx, clearCanvas, lastStrokeRowId);
-            localStorage.setItem('lastStrokeRowId', newLastStrokeRowId);
+            lastStrokeRowId = await loadCanvasStrokes(canvas, ctx, clearCanvas, lastStrokeRowId);
+            localStorage.setItem('lastStrokeRowId', lastStrokeRowId);
         }
     }, 1000);
 });
