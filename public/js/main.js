@@ -147,7 +147,8 @@ async function loadCanvasStrokes(canvas, ctx, clearCanvas = true, startAt = 0) {
         }));
 
         // merge cached and new strokes
-        saveCachedStrokes(cachedStrokes.concat(newStrokes));
+        const combined = cachedStrokes.concat(newStrokes);
+        saveCachedStrokes(combined);
 
         if (clearCanvas) renderStrokes(canvas, ctx, combined, true);
         else renderStrokes(canvas, ctx, newStrokes, false);
