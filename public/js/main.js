@@ -6,7 +6,7 @@ const IDLE_TIME = 2 * 60 * 1000;
 
 const ZOOM_STEP = 0.1;
 const MAX_ZOOM = 3;
-const MIN_ZOOM = 0.3;
+const MIN_ZOOM = 0.1;
 let zoomLevel = MIN_ZOOM;
 
 let isEraserMode = false;
