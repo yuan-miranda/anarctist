@@ -160,7 +160,10 @@ async function loadCanvasStrokes(canvas, ctx, useCache = true, startAt = 0) {
         const updated = useCache ? cachedStrokes.concat(newStrokes) : newStrokes;
         await saveCachedStrokes(updated);
 
-        if (!useCache) renderStrokes(canvas, ctx, updated, true); // fresh
+        if (!useCache) {
+            console.log('Rendering fresh strokes:', updated.length);
+            renderStrokes(canvas, ctx, updated, true); // fresh
+        }
         else if (newStrokes.length > 0) renderStrokes(canvas, ctx, newStrokes, false); // append new
 
         return newStrokes.length > 0 ? newStrokes[newStrokes.length - 1].id : lastCachedId;
@@ -233,6 +236,7 @@ async function redoStroke(canvas, ctx, undoStack, redoStack) {
 }
 
 function renderStrokes(canvas, ctx, strokes, clearCanvas = false) {
+    console.log('Rendering strokes:', strokes.length);
     if (clearCanvas) ctx.clearRect(0, 0, canvas.width, canvas.height);
     for (const stroke of strokes) {
         const path = stroke.path;
@@ -248,6 +252,7 @@ function renderStrokes(canvas, ctx, strokes, clearCanvas = false) {
             ctx.lineTo(path[i].x, path[i].y);
         }
 
+        console.log('Drawing stroke:', stroke.id, 'with color:', ctx.strokeStyle, 'and width:', ctx.lineWidth);
         ctx.stroke();
         ctx.restore();
     }
