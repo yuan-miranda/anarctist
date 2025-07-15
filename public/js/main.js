@@ -637,7 +637,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     eventListeners(canvas, ctx, undoStack, redoStack);
     loadCanvasPosition();
     applyZoom(canvas);
-    await loadCanvasStrokes(canvas, ctx);
+    await loadCanvasStrokes(canvas, ctx, false);
 
     updateUndoRedoButtons(undoStack, redoStack);
     updateZoomButtons();
