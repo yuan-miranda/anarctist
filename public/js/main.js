@@ -11,7 +11,7 @@ let zoomLevel = MIN_ZOOM;
 
 let isEraserMode = false;
 
-const db = await idb.openDB('AnarctistCanvas', 1, {
+const dbPromise = idb.openDB('AnarctistCanvas', 1, {
     upgrade(db) {
         db.createObjectStore('strokes', { keyPath: 'id' });
     }
