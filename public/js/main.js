@@ -90,6 +90,7 @@ async function saveCanvasStrokes(stroke) {
         });
 
         const data = await response.json();
+        if (response.status === 403) return; alert('You are being rate limited. Please wait a moment before drawing again.');
         if (!response.ok) return console.error(data.error);
 
         stroke.id = data.id;
