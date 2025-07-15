@@ -670,9 +670,9 @@ document.addEventListener('DOMContentLoaded', async () => {
     setInterval(async () => {
         if (!window._canvasDrawing) {
             counter++;
-            const clearCanvas = counter % 10 === 0;
+            const clearCanvas = counter % 5 === 0;
             lastStrokeRowId = await loadCanvasStrokes(canvas, ctx, clearCanvas, lastStrokeRowId);
             localStorage.setItem('lastStrokeRowId', lastStrokeRowId);
         }
-    }, 500);
+    }, 1000);
 });
