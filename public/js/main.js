@@ -138,12 +138,12 @@ async function loadCachedStrokes() {
 }
 
 async function loadCanvasStrokes(canvas, ctx, clearCanvas = true, startAt = 0) {
-    console.log(startAt, clearCanvas);
     try {
         const cachedStrokes = await loadCachedStrokes();
         let lastCachedId = cachedStrokes.length > 0 ? cachedStrokes[cachedStrokes.length - 1].id : 0;
 
         if (clearCanvas) startAt = lastCachedId + 1;
+        console.log('Loading strokes starting from ID:', startAt, 'Clear canvas:', clearCanvas, 'Cached strokes:', cachedStrokes.length);
 
         const params = new URLSearchParams({ startAt });
         const response = await fetch(`/api/load_strokes?${params.toString()}`);
