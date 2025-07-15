@@ -13,7 +13,9 @@ let isEraserMode = false;
 
 const dbPromise = idb.openDB('AnarctistCanvas', 1, {
     upgrade(db) {
-        db.createObjectStore('strokes', { keyPath: 'id' });
+        if (!db.objectStoreNames.contains('strokes')) {
+            db.createObjectStore('strokes', { keyPath: 'id' });
+        }
     }
 });
 
