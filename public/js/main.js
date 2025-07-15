@@ -26,46 +26,15 @@ function highlightSelectedColor(selectedBtn) {
 }
 
 function updateLineWidth(ctx) {
-    const strokeSizeSpan = document.getElementById('strokeSize');
-    const eraserStroke = document.getElementById('eraserStroke');
-
-    const size = parseInt(strokeSizeSpan.textContent, 10);
+    const strokeSize = document.getElementById('strokeSize').textContent;
+    const size = parseInt(strokeSize, 10);
     ctx.lineWidth = isEraserMode ? size * 10 : size;
-    eraserStroke.textContent = size * 10;
+    document.getElementById('eraserStroke').textContent = size * 10;
 }
-
-function initColorPicker(ctx) {
-    const colorButtons = document.querySelectorAll('.color-btn');
-    const customColorPicker = document.getElementById('customColor');
-    highlightSelectedColor(document.getElementById('colorBtnDefault'));
-
-    // add event listeners to color buttons
-    colorButtons.forEach(btn => {
-        btn.addEventListener('click', () => {
-            ctx.strokeStyle = btn.dataset.color;
-            isEraserMode = (btn.id === 'eraserStroke');
-
-            highlightSelectedColor(btn);
-            updateLineWidth(ctx);
-        });
-    });
-
-    // custom color picker
-    customColorPicker.addEventListener('input', () => {
-        ctx.strokeStyle = customColorPicker.value;
-        isEraserMode = false;
-
-        updateLineWidth(ctx);
-        highlightSelectedColor(null);
-    });
-}
-
 
 function resetIdleTimer() {
     if (idleTimeout) clearTimeout(idleTimeout);
-    idleTimeout = setTimeout(() => {
-        alert('Ayo bro you still there? You have been idle for 2 minutes.');
-    }, IDLE_TIME);
+    idleTimeout = setTimeout(() => alert('Ayo bro you still there? You have been idle for 2 minutes.'), IDLE_TIME);
 }
 
 function applyZoom(canvas) {
@@ -76,26 +45,19 @@ function applyZoom(canvas) {
 
 function centerCanvas(canvas) {
     const container = document.getElementById('canvas-container');
-    zoomLevel = MIN_ZOOM;
-    applyZoom(canvas);
-
     container.style.left = '50%';
     container.style.top = '50%';
     container.style.transform = 'translate(-50%, -50%)';
+    zoomLevel = MIN_ZOOM;
 
+    applyZoom(canvas);
     saveCanvasPosition(container.style.left, container.style.top);
-    localStorage.setItem('canvasZoomLevel', zoomLevel);
-
-    const zoomInButton = document.getElementById('zoomIn');
-    const zoomOutButton = document.getElementById('zoomOut');
-    updateZoomButtons(zoomInButton, zoomOutButton);
+    updateZoomButtons();
 }
 
 function saveStrokeHistory(stroke, undoStack) {
-    // if (!keepRedo) redoStack.length = 0;
     if (stroke && stroke.path && stroke.path.length > 1) {
         undoStack.push(stroke);
-        console.log('Saved stroke:', stroke);
         if (undoStack.length > 50) undoStack.shift();
     }
 }
@@ -130,7 +92,6 @@ async function saveCanvasStrokes(stroke) {
         const data = await response.json();
         if (!response.ok) return console.error(data.error);
 
-        console.log('Saved stroke with ID:', data.id);
         stroke.id = data.id;
     } catch (e) {
         console.error(e);
@@ -144,16 +105,6 @@ function decompressPath(pathStr) {
     });
 }
 
-function loadCachedStrokes() {
-    const cachedStrokes = localStorage.getItem('cachedStrokes') || '[]';
-    try {
-        return JSON.parse(cachedStrokes);
-    } catch (e) {
-        console.error('Failed to parse cached strokes:', e);
-        return [];
-    }
-}
-
 function saveCachedStrokes(strokes) {
     try {
         const keepUntil = Math.max(0, strokes.length - 24);
@@ -161,6 +112,16 @@ function saveCachedStrokes(strokes) {
         localStorage.setItem('cachedStrokes', JSON.stringify(cachedStrokes));
     } catch (e) {
         console.error('Failed to save cached strokes:', e);
+    }
+}
+
+function loadCachedStrokes() {
+    const cachedStrokes = localStorage.getItem('cachedStrokes') || '[]';
+    try {
+        return JSON.parse(cachedStrokes);
+    } catch (e) {
+        console.error('Failed to parse cached strokes:', e);
+        return [];
     }
 }
 
@@ -172,8 +133,8 @@ async function loadCanvasStrokes(canvas, ctx, clearCanvas = true, startAt = 0) {
 
         const params = new URLSearchParams();
         params.set('startAt', startAt);
-
         const response = await fetch(`/api/load_strokes?${params.toString()}`);
+
         const data = await response.json();
         if (!response.ok) {
             console.error(data.error);
@@ -186,20 +147,17 @@ async function loadCanvasStrokes(canvas, ctx, clearCanvas = true, startAt = 0) {
         }));
 
         // merge cached and new strokes
-        const combined = cachedStrokes.concat(newStrokes);
-        saveCachedStrokes(combined);
+        saveCachedStrokes(cachedStrokes.concat(newStrokes));
 
         if (clearCanvas) renderStrokes(canvas, ctx, combined, true);
         else renderStrokes(canvas, ctx, newStrokes, false);
 
-        const lastId = newStrokes.length > 0 ? newStrokes[newStrokes.length - 1].id : lastCachedId;
-        return lastId;
+        return newStrokes.length > 0 ? newStrokes[newStrokes.length - 1].id : lastCachedId;
     } catch (e) {
-        console.error('loadCanvasStrokes error:', e);
+        console.error(e);
         return startAt;
     }
 }
-
 
 async function deleteCanvasStrokes(id, deleteAll = false) {
     try {
@@ -213,8 +171,6 @@ async function deleteCanvasStrokes(id, deleteAll = false) {
 
         const data = await response.json();
         if (!response.ok) return console.error(data.error);
-
-        console.log('Deleted stroke with ID:', id);
     } catch (e) {
         console.error(e);
     }
@@ -226,15 +182,13 @@ function saveCanvasPosition(left, top) {
 
 function loadCanvasPosition() {
     const pos = localStorage.getItem('canvasPosition');
-    if (pos) {
-        const { left, top } = JSON.parse(pos);
-        const container = document.getElementById('canvas-container');
-        container.style.left = left;
-        container.style.top = top;
-        container.style.transform = '';
-    } else {
-        console.warn('No canvas position found in localStorage');
-    }
+    if (!pos) return console.warn('No canvas position found in localStorage');
+
+    const { left, top } = JSON.parse(pos);
+    const container = document.getElementById('canvas-container');
+    container.style.left = left;
+    container.style.top = top;
+    container.style.transform = '';
 }
 
 function getCanvasPos(container) {
@@ -269,7 +223,6 @@ async function redoStroke(canvas, ctx, undoStack, redoStack) {
 
 function renderStrokes(canvas, ctx, strokes, clearCanvas = false) {
     if (clearCanvas) ctx.clearRect(0, 0, canvas.width, canvas.height);
-
     for (const stroke of strokes) {
         const path = stroke.path;
         if (!path.length) continue;
@@ -289,19 +242,18 @@ function renderStrokes(canvas, ctx, strokes, clearCanvas = false) {
     }
 }
 
-function zoomIn(canvas, zoomInButton, zoomOutButton) {
+function zoomIn(canvas) {
     zoomLevel = Math.min(zoomLevel + ZOOM_STEP, MAX_ZOOM);
-    applyZoom(canvas);
     localStorage.setItem('canvasZoomLevel', zoomLevel);
-    updateZoomButtons(zoomInButton, zoomOutButton);
+    applyZoom(canvas);
+    updateZoomButtons();
 }
 
-function zoomOut(canvas, zoomInButton, zoomOutButton) {
-    zoomLevel = Math.max(zoomLevel - ZOOM_STEP, MIN_ZOOM);
-    zoomLevel = Math.round(zoomLevel * 10) / 10;
-    applyZoom(canvas);
+function zoomOut(canvas) {
+    zoomLevel = Math.round(Math.max(zoomLevel - ZOOM_STEP, MIN_ZOOM) * 10) / 10;
     localStorage.setItem('canvasZoomLevel', zoomLevel);
-    updateZoomButtons(zoomInButton, zoomOutButton);
+    applyZoom(canvas);
+    updateZoomButtons();
 }
 
 function updateUndoRedoButtons(undoStack, redoStack) {
@@ -309,32 +261,31 @@ function updateUndoRedoButtons(undoStack, redoStack) {
     document.getElementById('redoStroke').disabled = redoStack.length === 0;
 }
 
-function updateZoomButtons(zoomInButton, zoomOutButton) {
-    zoomInButton.disabled = zoomLevel >= MAX_ZOOM;
-    zoomOutButton.disabled = zoomLevel <= MIN_ZOOM;
+function updateZoomButtons() {
+    document.getElementById('zoomIn').disabled = zoomLevel >= MAX_ZOOM;
+    document.getElementById('zoomOut').disabled = zoomLevel <= MIN_ZOOM;
 }
 
-function addMouseEvents(canvas, ctx, undoStack, redoStack) {
+function mouseEvents(canvas, ctx, undoStack, redoStack) {
     const container = document.getElementById('canvas-container');
+    const drawCanvas = document.getElementById('draw-canvas');
     let isDragging = false, dragStartX = 0, dragStartY = 0, containerStartX = 0, containerStartY = 0;
-    let currentStroke = null;
-    let drawing = false;
+    let currentStroke = null, drawing = false;
     window._canvasDrawing = false;
 
     // mouse drawing functionality
     canvas.addEventListener('mousedown', e => {
         if (e.button !== 0) return;
+
         drawing = true;
         window._canvasDrawing = true;
-
         const x = e.offsetX;
         const y = e.offsetY;
 
         currentStroke = {
             color: ctx.strokeStyle,
             width: ctx.lineWidth,
-            path: [{ x, y }],
-            createdAt: new Date().toISOString()
+            path: [{ x, y }]
         };
     });
 
@@ -368,90 +319,92 @@ function addMouseEvents(canvas, ctx, undoStack, redoStack) {
     });
 
     canvas.addEventListener('mouseleave', async () => {
-        if (drawing) {
-            drawing = false;
-            window._canvasDrawing = false;
-            if (currentStroke && currentStroke.path.length > 1) {
-                saveStrokeHistory(currentStroke, undoStack);
-                scheduleSave(currentStroke);
-                updateUndoRedoButtons(undoStack, redoStack);
-            }
-            currentStroke = null;
+        if (!drawing) return;
+
+        drawing = false;
+        window._canvasDrawing = false;
+        if (currentStroke && currentStroke.path.length > 1) {
+            saveStrokeHistory(currentStroke, undoStack);
+            scheduleSave(currentStroke);
+            updateUndoRedoButtons(undoStack, redoStack);
         }
+        currentStroke = null;
+
     });
 
     // right-click panning functionality
-    container.addEventListener('mouseenter', () => {
-        if (!isDragging) container.style.cursor = 'crosshair';
+    drawCanvas.addEventListener('mouseenter', () => {
+        if (!isDragging) document.body.style.cursor = 'crosshair';
     });
 
-    container.addEventListener('mouseleave', () => {
-        if (!isDragging) container.style.cursor = '';
+    drawCanvas.addEventListener('mouseleave', () => {
+        if (!isDragging) document.body.style.cursor = 'grab';
     });
 
     document.addEventListener('mousedown', e => {
-        if (e.button === 2) {
-            isDragging = true;
-            document.body.style.cursor = 'grabbing';
-            container.style.cursor = 'grabbing';
-            dragStartX = e.clientX;
-            dragStartY = e.clientY;
-            const pos = getCanvasPos(container);
-            containerStartX = pos.left;
-            containerStartY = pos.top;
-            document.body.style.userSelect = 'none';
-        }
+        if (e.button !== 2) return;
+
+        isDragging = true;
+        document.body.style.cursor = 'grabbing';
+        drawCanvas.style.cursor = 'grabbing';
+
+        dragStartX = e.clientX;
+        dragStartY = e.clientY;
+        const pos = getCanvasPos(container);
+        containerStartX = pos.left;
+        containerStartY = pos.top;
+
     });
 
     document.addEventListener('mousemove', e => {
-        if (isDragging) {
-            const dx = e.clientX - dragStartX;
-            const dy = e.clientY - dragStartY;
-            container.style.left = (containerStartX + dx) + 'px';
-            container.style.top = (containerStartY + dy) + 'px';
-            container.style.transform = '';
-        }
+        if (!isDragging) return;
+
+        const dx = e.clientX - dragStartX;
+        const dy = e.clientY - dragStartY;
+        container.style.left = (containerStartX + dx) + 'px';
+        container.style.top = (containerStartY + dy) + 'px';
+        container.style.transform = '';
+
     });
 
     document.addEventListener('mouseup', e => {
         if (isDragging && e.button === 2) {
             isDragging = false;
             document.body.style.cursor = 'grab';
-            container.style.cursor = 'crosshair';
-            document.body.style.userSelect = '';
+            drawCanvas.style.cursor = 'crosshair';
             saveCanvasPosition(container.style.left, container.style.top);
         }
     });
 }
 
-function addTouchEvents(canvas, ctx, undoStack, redoStack) {
+function touchEvents(canvas, ctx, undoStack, redoStack) {
     const container = document.getElementById('canvas-container');
     let isPanning = false, panStartX = 0, panStartY = 0, containerStartX = 0, containerStartY = 0;
-    let drawing = false, lastX = 0, lastY = 0;
-    let currentStroke = null;
+    let currentStroke = null, drawing = false, lastX = 0, lastY = 0;
 
     // 1-finger drawing functionality
     canvas.addEventListener('touchstart', e => {
-        if (e.touches.length === 1) {
-            const rect = canvas.getBoundingClientRect();
-            const touch = e.touches[0];
-            drawing = true;
-            window._canvasDrawing = true;
+        if (e.touches.length !== 1) return;
 
-            lastX = (touch.clientX - rect.left) * (canvas.width / rect.width);
-            lastY = (touch.clientY - rect.top) * (canvas.height / rect.height);
-            currentStroke = {
-                color: ctx.strokeStyle,
-                width: ctx.lineWidth,
-                path: [{ x: lastX, y: lastY }],
-                createdAt: new Date().toISOString()
-            };
-        }
+        drawing = true;
+        window._canvasDrawing = true;
+
+        const rect = canvas.getBoundingClientRect();
+        const touch = e.touches[0];
+        lastX = (touch.clientX - rect.left) * (canvas.width / rect.width);
+        lastY = (touch.clientY - rect.top) * (canvas.height / rect.height);
+
+        currentStroke = {
+            color: ctx.strokeStyle,
+            width: ctx.lineWidth,
+            path: [{ x: lastX, y: lastY }]
+        };
     }, { passive: false });
 
     canvas.addEventListener('touchmove', e => {
         if (!drawing || e.touches.length !== 1) return;
         e.preventDefault();
+
         const rect = canvas.getBoundingClientRect();
         const touch = e.touches[0];
         const x = (touch.clientX - rect.left) * (canvas.width / rect.width);
@@ -461,6 +414,7 @@ function addTouchEvents(canvas, ctx, undoStack, redoStack) {
         ctx.moveTo(lastX, lastY);
         ctx.lineTo(x, y);
         ctx.stroke();
+
         lastX = x;
         lastY = y;
         if (currentStroke) {
@@ -472,35 +426,36 @@ function addTouchEvents(canvas, ctx, undoStack, redoStack) {
     }, { passive: false });
 
     canvas.addEventListener('touchend', async () => {
-        if (drawing) {
-            drawing = false;
-            window._canvasDrawing = false;
-            if (currentStroke && currentStroke.path.length > 1) {
-                saveStrokeHistory(currentStroke, undoStack);
-                scheduleSave(currentStroke);
-                updateUndoRedoButtons(undoStack, redoStack);
-            }
-            currentStroke = null;
+        if (!drawing) return;
+
+        drawing = false;
+        window._canvasDrawing = false;
+        if (currentStroke && currentStroke.path.length > 1) {
+            saveStrokeHistory(currentStroke, undoStack);
+            scheduleSave(currentStroke);
+            updateUndoRedoButtons(undoStack, redoStack);
         }
+        currentStroke = null;
     });
 
     canvas.addEventListener('touchcancel', async () => {
-        if (drawing) {
-            drawing = false;
-            window._canvasDrawing = false;
-            if (currentStroke && currentStroke.path.length > 1) {
-                saveStrokeHistory(currentStroke, undoStack);
-                scheduleSave(currentStroke);
-                updateUndoRedoButtons(undoStack, redoStack);
-            }
-            currentStroke = null;
+        if (!drawing) return;
+
+        drawing = false;
+        window._canvasDrawing = false;
+        if (currentStroke && currentStroke.path.length > 1) {
+            saveStrokeHistory(currentStroke, undoStack);
+            scheduleSave(currentStroke);
+            updateUndoRedoButtons(undoStack, redoStack);
         }
+        currentStroke = null;
     });
 
     // 2-finger panning functionality
     document.addEventListener('touchstart', e => {
         if (e.touches.length !== 2) return;
         e.preventDefault();
+
         isPanning = true;
         panStartX = e.touches[0].clientX;
         panStartY = e.touches[0].clientY;
@@ -530,15 +485,88 @@ function addTouchEvents(canvas, ctx, undoStack, redoStack) {
     }, { passive: false });
 
     document.addEventListener('touchcancel', () => {
-        if (isPanning) {
-            isPanning = false;
-            saveCanvasPosition(container.style.left, container.style.top);
-        }
+        if (!isPanning) return;
+
+        isPanning = false;
+        saveCanvasPosition(container.style.left, container.style.top);
     }, { passive: false });
 }
 
+function buttonEvents(canvas, ctx, undoStack, redoStack) {
+    const centerCanvasBtn = document.getElementById('centerCanvas');
+    const centerCanvasMinBtn = document.getElementById('centerCanvasMin');
+    const saveCanvasBtn = document.getElementById('saveCanvas');
+    const saveCanvasMinBtn = document.getElementById('saveCanvasMin');
+    const strokeSizeSpan = document.getElementById('strokeSize');
+
+    document.getElementById('undoStroke').addEventListener('click', async () => {
+        await undoStroke(canvas, ctx, undoStack, redoStack);
+    });
+
+    document.getElementById('redoStroke').addEventListener('click', async () => {
+        await redoStroke(canvas, ctx, undoStack, redoStack);
+    });
+
+    document.getElementById('zoomIn').addEventListener('click', () => {
+        zoomIn(canvas);
+    });
+
+    document.getElementById('zoomOut').addEventListener('click', () => {
+        zoomOut(canvas);
+    });
+
+    if (centerCanvasBtn) centerCanvasBtn.addEventListener('click', () => centerCanvas(canvas));
+    if (centerCanvasMinBtn) centerCanvasMinBtn.addEventListener('click', () => centerCanvas(canvas));
+
+    if (saveCanvasBtn) saveCanvasBtn.addEventListener('click', () => saveCanvasImage(canvas));
+    if (saveCanvasMinBtn) saveCanvasMinBtn.addEventListener('click', () => saveCanvasImage(canvas));
+
+    document.getElementById('decreaseStrokeSize').addEventListener('click', () => {
+        let currentSize = parseInt(strokeSizeSpan.textContent, 10);
+        if (currentSize > 1) {
+            currentSize--;
+            strokeSizeSpan.textContent = currentSize;
+            updateLineWidth(ctx);
+        }
+    });
+
+    document.getElementById('increaseStrokeSize').addEventListener('click', () => {
+        let currentSize = parseInt(strokeSizeSpan.textContent, 10);
+        if (currentSize < 20) {
+            currentSize++;
+            strokeSizeSpan.textContent = currentSize;
+            updateLineWidth(ctx);
+        }
+    });
+}
+
+function colorEvents(ctx) {
+    const colorButtons = document.querySelectorAll('.color-btn');
+    const customColorPicker = document.getElementById('customColor');
+    highlightSelectedColor(document.getElementById('colorBtnDefault'));
+
+    // add event listeners to color buttons
+    colorButtons.forEach(btn => {
+        btn.addEventListener('click', () => {
+            ctx.strokeStyle = btn.dataset.color;
+            isEraserMode = (btn.id === 'eraserStroke');
+
+            highlightSelectedColor(btn);
+            updateLineWidth(ctx);
+        });
+    });
+
+    // custom color picker
+    customColorPicker.addEventListener('input', () => {
+        ctx.strokeStyle = customColorPicker.value;
+        isEraserMode = false;
+
+        updateLineWidth(ctx);
+        highlightSelectedColor(null);
+    });
+}
+
 function saveCanvasImage(canvas) {
-    const timestamp = new Date().toISOString();
     const tempCanvas = document.createElement('canvas');
     const tempCtx = tempCanvas.getContext('2d');
 
@@ -550,14 +578,16 @@ function saveCanvasImage(canvas) {
     tempCtx.drawImage(canvas, 0, 0);
 
     const link = document.createElement('a');
-    link.download = `AnarctistCanvas_${timestamp}.png`;
+    link.download = `AnarctistCanvas_${new Date().toISOString()}.png`;
     link.href = tempCanvas.toDataURL('image/png');
     link.click();
 }
 
 function eventListeners(canvas, ctx, undoStack, redoStack) {
-    addMouseEvents(canvas, ctx, undoStack, redoStack);
-    addTouchEvents(canvas, ctx, undoStack, redoStack);
+    mouseEvents(canvas, ctx, undoStack, redoStack);
+    touchEvents(canvas, ctx, undoStack, redoStack);
+    buttonEvents(canvas, ctx, undoStack, redoStack);
+    colorEvents(ctx);
 
     window.addEventListener('keydown', async e => {
         if ((e.ctrlKey || e.metaKey) && !e.shiftKey && e.key.toLowerCase() === 'z') {
@@ -569,75 +599,9 @@ function eventListeners(canvas, ctx, undoStack, redoStack) {
         }
     });
 
-    // document.getElementById('clearCanvas').addEventListener('click', async () => {
-    //     ctx.clearRect(0, 0, canvas.width, canvas.height);
-    //     undoStack.length = 0;
-    //     redoStack.length = 0;
-    //     await deleteCanvasStrokes(null, true);
-    // });
-
-    document.getElementById('undoStroke').addEventListener('click', async () => {
-        await undoStroke(canvas, ctx, undoStack, redoStack);
+    ['mousemove', 'mousedown', 'keydown', 'touchstart', 'touchmove'].forEach(e => {
+        window.addEventListener(e, resetIdleTimer, { passive: true });
     });
-
-    document.getElementById('redoStroke').addEventListener('click', async () => {
-        await redoStroke(canvas, ctx, undoStack, redoStack);
-    });
-
-    const zoomInButton = document.getElementById('zoomIn');
-    const zoomOutButton = document.getElementById('zoomOut');
-
-    zoomInButton.addEventListener('click', () => {
-        zoomIn(canvas, zoomInButton, zoomOutButton);
-    });
-
-    zoomOutButton.addEventListener('click', () => {
-        zoomOut(canvas, zoomInButton, zoomOutButton);
-    });
-
-    const centerCanvasBtn = document.getElementById('centerCanvas');
-    const centerCanvasMinBtn = document.getElementById('centerCanvasMin');
-    if (centerCanvasBtn) {
-        centerCanvasBtn.addEventListener('click', () => centerCanvas(canvas));
-    }
-    if (centerCanvasMinBtn) {
-        centerCanvasMinBtn.addEventListener('click', () => centerCanvas(canvas));
-    }
-
-    const saveCanvasBtn = document.getElementById('saveCanvas');
-    const saveCanvasMinBtn = document.getElementById('saveCanvasMin');
-    if (saveCanvasBtn) {
-        saveCanvasBtn.addEventListener('click', () => saveCanvasImage(canvas));
-    }
-    if (saveCanvasMinBtn) {
-        saveCanvasMinBtn.addEventListener('click', () => saveCanvasImage(canvas));
-    }
-
-
-    document.getElementById('decreaseStrokeSize').addEventListener('click', () => {
-        const strokeSizeSpan = document.getElementById('strokeSize');
-        let currentSize = parseInt(strokeSizeSpan.textContent, 10);
-        if (currentSize > 1) {
-            currentSize--;
-            strokeSizeSpan.textContent = currentSize;
-            updateLineWidth(ctx);
-        }
-    });
-
-    document.getElementById('increaseStrokeSize').addEventListener('click', () => {
-        const strokeSizeSpan = document.getElementById('strokeSize');
-        let currentSize = parseInt(strokeSizeSpan.textContent, 10);
-        if (currentSize < 20) {
-            currentSize++;
-            strokeSizeSpan.textContent = currentSize;
-            updateLineWidth(ctx);
-        }
-    });
-
-    ['mousemove', 'mousedown', 'keydown', 'touchstart', 'touchmove'].forEach(evt => {
-        window.addEventListener(evt, resetIdleTimer, { passive: true });
-    });
-    resetIdleTimer();
 
     document.addEventListener('contextmenu', e => e.preventDefault());
 
@@ -648,9 +612,6 @@ function eventListeners(canvas, ctx, undoStack, redoStack) {
 
 document.addEventListener('DOMContentLoaded', async () => {
     const canvas = document.getElementById('draw-canvas');
-    const zoomInButton = document.getElementById('zoomIn');
-    const zoomOutButton = document.getElementById('zoomOut');
-
     const ctx = canvas.getContext('2d');
     let undoStack = [], redoStack = [];
 
@@ -659,19 +620,16 @@ document.addEventListener('DOMContentLoaded', async () => {
     ctx.fillStyle = '#fff';
     ctx.lineCap = 'round';
 
-    document.body.style.cursor = 'grab';
-
     const storedZoom = localStorage.getItem('canvasZoomLevel');
     if (storedZoom !== null) zoomLevel = parseFloat(storedZoom);
 
-    initColorPicker(ctx);
     eventListeners(canvas, ctx, undoStack, redoStack);
     loadCanvasPosition();
+    applyZoom(canvas);
     await loadCanvasStrokes(canvas, ctx);
 
-    applyZoom(canvas);
     updateUndoRedoButtons(undoStack, redoStack);
-    updateZoomButtons(zoomInButton, zoomOutButton);
+    updateZoomButtons();
 
     let lastStrokeRowId = parseInt(localStorage.getItem('lastStrokeRowId'), 10) || 0;
     let counter = 0;
@@ -679,8 +637,9 @@ document.addEventListener('DOMContentLoaded', async () => {
         if (!window._canvasDrawing) {
             counter++;
             const clearCanvas = counter % 5 === 0;
-            lastStrokeRowId = await loadCanvasStrokes(canvas, ctx, clearCanvas, lastStrokeRowId);
-            localStorage.setItem('lastStrokeRowId', lastStrokeRowId);
+
+            const newLastStrokeRowId = await loadCanvasStrokes(canvas, ctx, clearCanvas, lastStrokeRowId);
+            localStorage.setItem('lastStrokeRowId', newLastStrokeRowId);
         }
     }, 1000);
 });
