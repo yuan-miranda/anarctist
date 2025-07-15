@@ -138,6 +138,7 @@ async function loadCachedStrokes() {
 }
 
 async function loadCanvasStrokes(canvas, ctx, clearCanvas = true, startAt = 0) {
+    console.log(startAt, clearCanvas);
     try {
         const cachedStrokes = await loadCachedStrokes();
         let lastCachedId = cachedStrokes.length > 0 ? cachedStrokes[cachedStrokes.length - 1].id : 0;
@@ -643,6 +644,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     updateZoomButtons();
 
     let lastStrokeRowId = await loadCanvasStrokes(canvas, ctx);
+    console.log('Loaded last stroke row ID:', lastStrokeRowId);
     let counter = 0;
     setInterval(async () => {
         if (!window._canvasDrawing) {
