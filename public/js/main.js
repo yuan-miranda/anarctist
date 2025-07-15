@@ -143,7 +143,6 @@ async function loadCanvasStrokes(canvas, ctx, clearCanvas = true, startAt = 0) {
         let lastCachedId = cachedStrokes.length > 0 ? cachedStrokes[cachedStrokes.length - 1].id : 0;
 
         if (clearCanvas) startAt = lastCachedId + 1;
-        console.log('Loading strokes starting from ID:', startAt, 'Clear canvas:', clearCanvas, 'Cached strokes:', cachedStrokes.length);
 
         const params = new URLSearchParams({ startAt });
         const response = await fetch(`/api/load_strokes?${params.toString()}`);
@@ -172,6 +171,7 @@ async function loadCanvasStrokes(canvas, ctx, clearCanvas = true, startAt = 0) {
         return startAt;
     }
 }
+
 
 async function deleteCanvasStrokes(id, deleteAll = false) {
     try {
@@ -640,11 +640,12 @@ document.addEventListener('DOMContentLoaded', async () => {
     eventListeners(canvas, ctx, undoStack, redoStack);
     loadCanvasPosition();
     applyZoom(canvas);
+    await loadCanvasStrokes(canvas, ctx);
+
     updateUndoRedoButtons(undoStack, redoStack);
     updateZoomButtons();
 
-    let lastStrokeRowId = await loadCanvasStrokes(canvas, ctx);
-    console.log('Loaded last stroke row ID:', lastStrokeRowId);
+    let lastStrokeRowId = parseInt(localStorage.getItem('lastStrokeRowId'), 10) || 0;
     let counter = 0;
     setInterval(async () => {
         if (!window._canvasDrawing) {
