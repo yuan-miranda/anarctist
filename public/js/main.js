@@ -137,6 +137,14 @@ async function loadCachedStrokes() {
     }
 }
 
+// 1. load initially fresh 0 - ...
+// 2. load cached strokes + new
+// 3. load cached strokes, then eventually new only
+// 
+async function loadCachedStrokes(canvas, ctx, clearCanvas = false, loadCache = ) {
+    
+}
+
 async function loadCanvasStrokes(canvas, ctx, clearCanvas = true, startAt = 0) {
     try {
         const cachedStrokes = await loadCachedStrokes();
