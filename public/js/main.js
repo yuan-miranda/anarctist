@@ -105,37 +105,49 @@ function decompressPath(pathStr) {
     });
 }
 
-function saveCachedStrokes(strokes) {
+async function saveCachedStrokes(strokes) {
     try {
         const keepUntil = Math.max(0, strokes.length - 24);
         const cachedStrokes = strokes.slice(0, keepUntil);
-        localStorage.setItem('cachedStrokes', JSON.stringify(cachedStrokes));
+
+        const db = await dbPromise;
+        const tx = db.transaction('strokes', 'readwrite');
+        const store = tx.objectStore('strokes');
+
+        await store.clear(); // remove old strokes
+
+        for (const stroke of cachedStrokes) {
+            await store.put(stroke);
+        }
+
+        await tx.done;
     } catch (e) {
-        console.error('Failed to save cached strokes:', e);
+        console.error('Failed to save cached strokes to IndexedDB:', e);
     }
 }
 
-function loadCachedStrokes() {
-    const cachedStrokes = localStorage.getItem('cachedStrokes') || '[]';
+async function loadCachedStrokes() {
     try {
-        return JSON.parse(cachedStrokes);
+        const db = await dbPromise;
+        const strokes = await db.getAll('strokes');
+        return strokes;
     } catch (e) {
-        console.error('Failed to parse cached strokes:', e);
+        console.error('Failed to load cached strokes from IndexedDB:', e);
         return [];
     }
 }
 
 async function loadCanvasStrokes(canvas, ctx, clearCanvas = true, startAt = 0) {
     try {
-        let cachedStrokes = loadCachedStrokes();
+        const cachedStrokes = await loadCachedStrokes();
         let lastCachedId = cachedStrokes.length > 0 ? cachedStrokes[cachedStrokes.length - 1].id : 0;
+
         if (clearCanvas) startAt = lastCachedId + 1;
 
-        const params = new URLSearchParams();
-        params.set('startAt', startAt);
+        const params = new URLSearchParams({ startAt });
         const response = await fetch(`/api/load_strokes?${params.toString()}`);
-
         const data = await response.json();
+
         if (!response.ok) {
             console.error(data.error);
             return lastCachedId;
@@ -148,7 +160,7 @@ async function loadCanvasStrokes(canvas, ctx, clearCanvas = true, startAt = 0) {
 
         // merge cached and new strokes
         const combined = cachedStrokes.concat(newStrokes);
-        saveCachedStrokes(combined);
+        await saveCachedStrokes(combined);
 
         if (clearCanvas) renderStrokes(canvas, ctx, combined, true);
         else renderStrokes(canvas, ctx, newStrokes, false);
@@ -159,6 +171,7 @@ async function loadCanvasStrokes(canvas, ctx, clearCanvas = true, startAt = 0) {
         return startAt;
     }
 }
+
 
 async function deleteCanvasStrokes(id, deleteAll = false) {
     try {
