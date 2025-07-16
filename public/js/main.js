@@ -11,6 +11,7 @@ let zoomLevel = MIN_ZOOM;
 
 let isEraserMode = false;
 
+// eslint-disable-next-line no-undef
 const dbPromise = idb.openDB('AnarctistCanvas', 1, {
     upgrade(db) {
         if (!db.objectStoreNames.contains('strokes')) {
@@ -53,13 +54,6 @@ function centerCanvas(canvas) {
     applyZoom(canvas);
     saveCanvasPosition(container.style.left, container.style.top);
     updateZoomButtons();
-}
-
-function saveStrokeHistory(stroke, undoStack) {
-    if (stroke && stroke.path && stroke.path.length > 1) {
-        undoStack.push(stroke);
-        if (undoStack.length > 50) undoStack.shift();
-    }
 }
 
 function scheduleSave(stroke) {
@@ -173,24 +167,6 @@ async function loadCanvasStrokes(canvas, ctx, clearCanvas = true, startAt = 0) {
     }
 }
 
-
-async function deleteCanvasStrokes(id, deleteAll = false) {
-    try {
-        const response = await fetch('/api/delete_stroke', {
-            method: 'DELETE',
-            headers: {
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify({ id, deleteAll })
-        });
-
-        const data = await response.json();
-        if (!response.ok) return console.error(data.error);
-    } catch (e) {
-        console.error(e);
-    }
-}
-
 function saveCanvasPosition(left, top) {
     localStorage.setItem('canvasPosition', JSON.stringify({ left, top }));
 }
@@ -212,28 +188,6 @@ function getCanvasPos(container) {
         left: parseInt(style.left, 10),
         top: parseInt(style.top, 10)
     };
-}
-
-async function undoStroke(canvas, ctx, undoStack, redoStack) {
-    if (!undoStack.length || window._canvasDrawing) return;
-
-    const lastStroke = undoStack.pop();
-    redoStack.push(lastStroke);
-
-    if (lastStroke.id) await deleteCanvasStrokes(lastStroke.id);
-    await loadCanvasStrokes(canvas, ctx);
-    updateUndoRedoButtons(undoStack, redoStack);
-}
-
-async function redoStroke(canvas, ctx, undoStack, redoStack) {
-    if (!redoStack.length || window._canvasDrawing) return;
-
-    const lastStroke = redoStack.pop();
-    await saveCanvasStrokes(lastStroke);
-
-    undoStack.push(lastStroke);
-    await loadCanvasStrokes(canvas, ctx);
-    updateUndoRedoButtons(undoStack, redoStack);
 }
 
 function renderStrokes(canvas, ctx, strokes, clearCanvas = false) {
@@ -271,17 +225,12 @@ function zoomOut(canvas) {
     updateZoomButtons();
 }
 
-function updateUndoRedoButtons(undoStack, redoStack) {
-    document.getElementById('undoStroke').disabled = undoStack.length === 0;
-    document.getElementById('redoStroke').disabled = redoStack.length === 0;
-}
-
 function updateZoomButtons() {
     document.getElementById('zoomIn').disabled = zoomLevel >= MAX_ZOOM;
     document.getElementById('zoomOut').disabled = zoomLevel <= MIN_ZOOM;
 }
 
-function mouseEvents(canvas, ctx, undoStack, redoStack) {
+function mouseEvents(canvas, ctx) {
     const container = document.getElementById('canvas-container');
     const drawCanvas = document.getElementById('draw-canvas');
     let isDragging = false, dragStartX = 0, dragStartY = 0, containerStartX = 0, containerStartY = 0;
@@ -326,9 +275,7 @@ function mouseEvents(canvas, ctx, undoStack, redoStack) {
         window._canvasDrawing = false;
 
         if (currentStroke && currentStroke.path.length > 1) {
-            saveStrokeHistory(currentStroke, undoStack);
             scheduleSave(currentStroke);
-            updateUndoRedoButtons(undoStack, redoStack);
         }
         currentStroke = null;
     });
@@ -339,9 +286,7 @@ function mouseEvents(canvas, ctx, undoStack, redoStack) {
         drawing = false;
         window._canvasDrawing = false;
         if (currentStroke && currentStroke.path.length > 1) {
-            saveStrokeHistory(currentStroke, undoStack);
             scheduleSave(currentStroke);
-            updateUndoRedoButtons(undoStack, redoStack);
         }
         currentStroke = null;
 
@@ -392,7 +337,7 @@ function mouseEvents(canvas, ctx, undoStack, redoStack) {
     });
 }
 
-function touchEvents(canvas, ctx, undoStack, redoStack) {
+function touchEvents(canvas, ctx) {
     const container = document.getElementById('canvas-container');
     let isPanning = false, panStartX = 0, panStartY = 0, containerStartX = 0, containerStartY = 0;
     let currentStroke = null, drawing = false, lastX = 0, lastY = 0;
@@ -446,9 +391,7 @@ function touchEvents(canvas, ctx, undoStack, redoStack) {
         drawing = false;
         window._canvasDrawing = false;
         if (currentStroke && currentStroke.path.length > 1) {
-            saveStrokeHistory(currentStroke, undoStack);
             scheduleSave(currentStroke);
-            updateUndoRedoButtons(undoStack, redoStack);
         }
         currentStroke = null;
     });
@@ -459,9 +402,7 @@ function touchEvents(canvas, ctx, undoStack, redoStack) {
         drawing = false;
         window._canvasDrawing = false;
         if (currentStroke && currentStroke.path.length > 1) {
-            saveStrokeHistory(currentStroke, undoStack);
             scheduleSave(currentStroke);
-            updateUndoRedoButtons(undoStack, redoStack);
         }
         currentStroke = null;
     });
@@ -507,20 +448,12 @@ function touchEvents(canvas, ctx, undoStack, redoStack) {
     }, { passive: false });
 }
 
-function buttonEvents(canvas, ctx, undoStack, redoStack) {
+function buttonEvents(canvas, ctx) {
     const centerCanvasBtn = document.getElementById('centerCanvas');
     const centerCanvasMinBtn = document.getElementById('centerCanvasMin');
     const saveCanvasBtn = document.getElementById('saveCanvas');
     const saveCanvasMinBtn = document.getElementById('saveCanvasMin');
     const strokeSizeSpan = document.getElementById('strokeSize');
-
-    document.getElementById('undoStroke').addEventListener('click', async () => {
-        await undoStroke(canvas, ctx, undoStack, redoStack);
-    });
-
-    document.getElementById('redoStroke').addEventListener('click', async () => {
-        await redoStroke(canvas, ctx, undoStack, redoStack);
-    });
 
     document.getElementById('zoomIn').addEventListener('click', () => {
         zoomIn(canvas);
@@ -598,21 +531,11 @@ function saveCanvasImage(canvas) {
     link.click();
 }
 
-function eventListeners(canvas, ctx, undoStack, redoStack) {
-    mouseEvents(canvas, ctx, undoStack, redoStack);
-    touchEvents(canvas, ctx, undoStack, redoStack);
-    buttonEvents(canvas, ctx, undoStack, redoStack);
+function eventListeners(canvas, ctx) {
+    mouseEvents(canvas, ctx);
+    touchEvents(canvas, ctx);
+    buttonEvents(canvas, ctx);
     colorEvents(ctx);
-
-    window.addEventListener('keydown', async e => {
-        if ((e.ctrlKey || e.metaKey) && !e.shiftKey && e.key.toLowerCase() === 'z') {
-            e.preventDefault();
-            await undoStroke(canvas, ctx, undoStack, redoStack);
-        } else if ((e.ctrlKey || e.metaKey) && (e.key.toLowerCase() === 'y' || (e.shiftKey && e.key.toLowerCase() === 'z'))) {
-            e.preventDefault();
-            await redoStroke(canvas, ctx, undoStack, redoStack);
-        }
-    });
 
     ['mousemove', 'mousedown', 'keydown', 'touchstart', 'touchmove'].forEach(e => {
         window.addEventListener(e, resetIdleTimer, { passive: true });
@@ -628,7 +551,6 @@ function eventListeners(canvas, ctx, undoStack, redoStack) {
 document.addEventListener('DOMContentLoaded', async () => {
     const canvas = document.getElementById('draw-canvas');
     const ctx = canvas.getContext('2d');
-    let undoStack = [], redoStack = [];
 
     ctx.strokeStyle = '#000';
     ctx.lineWidth = 2;
@@ -638,12 +560,11 @@ document.addEventListener('DOMContentLoaded', async () => {
     const storedZoom = localStorage.getItem('canvasZoomLevel');
     if (storedZoom !== null) zoomLevel = parseFloat(storedZoom);
 
-    eventListeners(canvas, ctx, undoStack, redoStack);
+    eventListeners(canvas, ctx);
     loadCanvasPosition();
     applyZoom(canvas);
     await loadCanvasStrokes(canvas, ctx);
 
-    updateUndoRedoButtons(undoStack, redoStack);
     updateZoomButtons();
 
     let lastStrokeRowId = parseInt(localStorage.getItem('lastStrokeRowId'), 10) || 0;
