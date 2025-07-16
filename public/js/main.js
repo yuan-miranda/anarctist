@@ -11,15 +11,6 @@ let zoomLevel = MIN_ZOOM;
 
 let isEraserMode = false;
 
-// eslint-disable-next-line no-undef
-const dbPromise = idb.openDB('AnarctistCanvas', 1, {
-    upgrade(db) {
-        if (!db.objectStoreNames.contains('strokes')) {
-            db.createObjectStore('strokes', { keyPath: 'id' });
-        }
-    }
-});
-
 function highlightSelectedColor(selectedBtn) {
     const colorButtons = document.querySelectorAll('.color-btn');
     colorButtons.forEach(btn => btn.classList.remove('selected'));
@@ -100,54 +91,14 @@ function decompressPath(pathStr) {
     });
 }
 
-function compressPath(path) {
-    // [{x: 100, y: 150}, {x: 101, y: 151}] to "100,150;101,151"
-    return path.map(point => `${point.x},${point.y}`).join(';');
-}
-
-async function saveCachedStrokes(strokes) {
-    try {
-        if (strokes.length === 0) return;
-        const cachedStrokes = strokes.map(stroke => ({
-            ...stroke,
-            path: compressPath(stroke.path)
-        }));
-
-        const db = await dbPromise;
-        const tx = db.transaction('strokes', 'readwrite');
-        const store = tx.objectStore('strokes');
-
-        await store.clear(); // remove old strokes
-        for (const stroke of cachedStrokes) {
-            await store.put(stroke);
-        }
-
-        await tx.done;
-    } catch (e) {
-        console.error('Failed to save cached strokes to IndexedDB:', e);
-    }
-}
-
-async function loadCachedStrokes() {
-    try {
-        const db = await dbPromise;
-        const strokes = await db.getAll('strokes');
-        return strokes;
-    } catch (e) {
-        console.error('Failed to load cached strokes from IndexedDB:', e);
-        return [];
-    }
-}
+// function compressPath(path) {
+//     // [{x: 100, y: 150}, {x: 101, y: 151}] to "100,150;101,151"
+//     return path.map(point => `${point.x},${point.y}`).join(';');
+// }
 
 async function loadCanvasStrokesWithCache(canvas, ctx, startAt = 0) {
     try {
-        const cachedStrokes = await loadCachedStrokes();
-        let lastCachedId = cachedStrokes.length > 0 ? cachedStrokes[cachedStrokes.length - 1].id : 0;
-
-        if (lastCachedId >= startAt) {
-            renderStrokes(canvas, ctx, cachedStrokes);
-            return lastCachedId;
-        }
+        const lastStrokeId = localStorage.getItem('lastStrokeId') || 0;
 
         const params = new URLSearchParams({ startAt });
         const response = await fetch(`/api/load_strokes?${params.toString()}`);
@@ -155,7 +106,7 @@ async function loadCanvasStrokesWithCache(canvas, ctx, startAt = 0) {
 
         if (!response.ok) {
             console.error(data.error);
-            return lastCachedId;
+            return lastStrokeId;
         }
 
         const newStrokes = (data.strokes || []).map(stroke => ({
@@ -163,9 +114,12 @@ async function loadCanvasStrokesWithCache(canvas, ctx, startAt = 0) {
             path: decompressPath(stroke.path),
         }));
 
-        await saveCachedStrokes(newStrokes);
+        const newStrokeId = newStrokes.length > 0 ? newStrokes[newStrokes.length - 1].id : lastStrokeId;
+        localStorage.setItem('lastStrokeId', newStrokeId);
+
+        console.log(`Loaded ${newStrokes.length} new strokes starting from ID ${startAt}`);
         renderStrokes(canvas, ctx, newStrokes);
-        return newStrokes.length > 0 ? newStrokes[newStrokes.length - 1].id : 0;
+        return newStrokeId;
     } catch (e) {
         console.error(e);
         return startAt;
@@ -188,9 +142,12 @@ async function loadCanvasStrokesWithoutCache(canvas, ctx) {
             path: decompressPath(stroke.path),
         }));
 
-        await saveCachedStrokes(newStrokes);
+        const lastStrokeId = newStrokes.length > 0 ? newStrokes[newStrokes.length - 1].id : 0;
+        localStorage.setItem('lastStrokeId', lastStrokeId);
+
+        console.log(`Loaded ${newStrokes.length} strokes from the server`);
         renderStrokes(canvas, ctx, newStrokes);
-        return newStrokes.length > 0 ? newStrokes[newStrokes.length - 1].id : 0;
+        return lastStrokeId;
     } catch (e) {
         console.error(e);
         return 0;
@@ -589,15 +546,13 @@ document.addEventListener('DOMContentLoaded', async () => {
     eventListeners(canvas, ctx);
     loadCanvasPosition();
     applyZoom(canvas);
-    await loadCanvasStrokesWithoutCache(canvas, ctx);
-
     updateZoomButtons();
 
-    let lastStrokeId = 0;
+    let lastStrokeId = await loadCanvasStrokesWithoutCache(canvas, ctx);
     setInterval(async () => {
         if (!window._canvasDrawing) {
-            const nextStrokeId = await loadCanvasStrokesWithCache(canvas, ctx, lastStrokeId);
-            if (nextStrokeId > lastStrokeId) lastStrokeId = nextStrokeId;
+            console.log('checking for new strokes...');
+            lastStrokeId = await loadCanvasStrokesWithCache(canvas, ctx, lastStrokeId + 1);
         }
     }, 1000);
 });
