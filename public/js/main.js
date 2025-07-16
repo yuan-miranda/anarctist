@@ -572,10 +572,6 @@ function eventListeners(canvas, ctx) {
     });
 
     document.addEventListener('contextmenu', e => e.preventDefault());
-
-    window.addEventListener('beforeunload', () => {
-        localStorage.removeItem('lastStrokeRowId');
-    });
 }
 
 document.addEventListener('DOMContentLoaded', async () => {
@@ -597,11 +593,11 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     updateZoomButtons();
 
-    let lastStrokeRowId = parseInt(localStorage.getItem('lastStrokeRowId'), 10) || 0;
+    let lastStrokeId = 0;
     setInterval(async () => {
         if (!window._canvasDrawing) {
-            lastStrokeRowId = await loadCanvasStrokesWithCache(canvas, ctx, lastStrokeRowId);
-            localStorage.setItem('lastStrokeRowId', lastStrokeRowId);
+            const nextStrokeId = await loadCanvasStrokesWithCache(canvas, ctx, lastStrokeId);
+            if (nextStrokeId > lastStrokeId) lastStrokeId = nextStrokeId;
         }
     }, 1000);
 });
