@@ -35,14 +35,15 @@ function applyZoom(canvas) {
     localStorage.setItem('canvasZoomLevel', zoomLevel);
 }
 
-function centerCanvas(left = '50%', top = '50%') {
+function centerCanvas(canvas) {
     const container = document.getElementById('canvas-container');
-    const drawCanvas = document.getElementById('draw-canvas');
-    container.style.left = left;
-    container.style.top = top;
+    container.style.left = '50%';
+    container.style.top = '50%';
     container.style.transform = 'translate(-50%, -50%)';
+    zoomLevel = MIN_ZOOM;
 
-    saveCanvasPosition(container, drawCanvas, left, top);
+    applyZoom(canvas);
+    saveCanvasPosition(container.style.left, container.style.top);
     updateZoomButtons();
 }
 
@@ -153,24 +154,8 @@ async function loadCanvasStrokesWithoutCache(canvas, ctx) {
     }
 }
 
-function saveCanvasPosition(container, drawCanvas, left, top) {
-    const canvasRect = drawCanvas.getBoundingClientRect();
-    const containerRect = container.getBoundingClientRect();
-
-    let newLeft = parseInt(left, 10);
-    let newTop = parseInt(top, 10);
-
-    if (containerRect.right > canvasRect.right) newLeft = canvasRect.width - containerRect.width;
-    else if (containerRect.left < canvasRect.left) newLeft = 0;
-
-    if (containerRect.bottom > canvasRect.bottom) newTop = canvasRect.height - containerRect.height;
-    else if (containerRect.top < canvasRect.top) newTop = 0;
-
-    container.style.left = `${newLeft}px`;
-    container.style.top = `${newTop}px`;
-    container.style.transform = '';
-
-    localStorage.setItem('canvasPosition', JSON.stringify({ left: `${newLeft}px`, top: `${newTop}px` }));
+function saveCanvasPosition(left, top) {
+    localStorage.setItem('canvasPosition', JSON.stringify({ left, top }));
 }
 
 function loadCanvasPosition() {
@@ -336,14 +321,13 @@ function mouseEvents(canvas, ctx) {
             isDragging = false;
             document.body.style.cursor = 'grab';
             drawCanvas.style.cursor = 'crosshair';
-            saveCanvasPosition(container, drawCanvas, container.style.left, container.style.top);
+            saveCanvasPosition(container.style.left, container.style.top);
         }
     });
 }
 
 function touchEvents(canvas, ctx) {
     const container = document.getElementById('canvas-container');
-    const drawCanvas = document.getElementById('draw-canvas');
     let isPanning = false, panStartX = 0, panStartY = 0, containerStartX = 0, containerStartY = 0;
     let currentStroke = null, drawing = false, lastX = 0, lastY = 0;
 
@@ -441,7 +425,7 @@ function touchEvents(canvas, ctx) {
     document.addEventListener('touchend', e => {
         if (isPanning && e.touches.length < 2) {
             isPanning = false;
-            saveCanvasPosition(container, drawCanvas, container.style.left, container.style.top);
+            saveCanvasPosition(container.style.left, container.style.top);
         }
     }, { passive: false });
 
@@ -449,7 +433,7 @@ function touchEvents(canvas, ctx) {
         if (!isPanning) return;
 
         isPanning = false;
-        saveCanvasPosition(container, drawCanvas, container.style.left, container.style.top);
+        saveCanvasPosition(container.style.left, container.style.top);
     }, { passive: false });
 }
 
@@ -468,8 +452,8 @@ function buttonEvents(canvas, ctx) {
         zoomOut(canvas);
     });
 
-    if (centerCanvasBtn) centerCanvasBtn.addEventListener('click', () => centerCanvas());
-    if (centerCanvasMinBtn) centerCanvasMinBtn.addEventListener('click', () => centerCanvas());
+    if (centerCanvasBtn) centerCanvasBtn.addEventListener('click', () => centerCanvas(canvas));
+    if (centerCanvasMinBtn) centerCanvasMinBtn.addEventListener('click', () => centerCanvas(canvas));
 
     if (saveCanvasBtn) saveCanvasBtn.addEventListener('click', () => saveCanvasImage(canvas));
     if (saveCanvasMinBtn) saveCanvasMinBtn.addEventListener('click', () => saveCanvasImage(canvas));
