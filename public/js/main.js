@@ -35,12 +35,12 @@ function applyZoom(canvas) {
     localStorage.setItem('canvasZoomLevel', zoomLevel);
 }
 
-function centerCanvas(canvas) {
+function centerCanvas(canvas, resetZoom = false) {
     const container = document.getElementById('canvas-container');
     container.style.left = '50%';
     container.style.top = '50%';
     container.style.transform = 'translate(-50%, -50%)';
-    zoomLevel = MIN_ZOOM;
+    if (resetZoom) zoomLevel = MIN_ZOOM;
 
     applyZoom(canvas);
     saveCanvasPosition(container.style.left, container.style.top);
@@ -458,8 +458,8 @@ function buttonEvents(canvas, ctx) {
         zoomOut(canvas);
     });
 
-    if (centerCanvasBtn) centerCanvasBtn.addEventListener('click', () => centerCanvas(canvas));
-    if (centerCanvasMinBtn) centerCanvasMinBtn.addEventListener('click', () => centerCanvas(canvas));
+    if (centerCanvasBtn) centerCanvasBtn.addEventListener('click', () => centerCanvas(canvas, true));
+    if (centerCanvasMinBtn) centerCanvasMinBtn.addEventListener('click', () => centerCanvas(canvas, true));
 
     if (saveCanvasBtn) saveCanvasBtn.addEventListener('click', () => saveCanvasImage(canvas));
     if (saveCanvasMinBtn) saveCanvasMinBtn.addEventListener('click', () => saveCanvasImage(canvas));
