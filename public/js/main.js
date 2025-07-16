@@ -96,17 +96,18 @@ function decompressPath(pathStr) {
 //     return path.map(point => `${point.x},${point.y}`).join(';');
 // }
 
-async function loadCanvasStrokesWithCache(canvas, ctx, startAt = 0) {
+async function loadCanvasStrokes(canvas, ctx, { useCache = true, startAt = 0 } = {}) {
     try {
-        const lastStrokeId = parseInt(localStorage.getItem('lastStrokeId'), 10) || 0;
+        const cachedLastStrokeId = parseInt(localStorage.getItem('lastStrokeId'), 10) || 0;
+        const effectiveStartAt = useCache ? startAt : 0;
 
-        const params = new URLSearchParams({ startAt });
+        const params = new URLSearchParams({ startAt: effectiveStartAt });
         const response = await fetch(`/api/load_strokes?${params.toString()}`);
         const data = await response.json();
 
         if (!response.ok) {
             console.error(data.error);
-            return lastStrokeId;
+            return useCache ? cachedLastStrokeId : 0;
         }
 
         const newStrokes = (data.strokes || []).map(stroke => ({
@@ -114,45 +115,17 @@ async function loadCanvasStrokesWithCache(canvas, ctx, startAt = 0) {
             path: decompressPath(stroke.path),
         }));
 
-        const newStrokeId = newStrokes.length > 0 ? newStrokes[newStrokes.length - 1].id : lastStrokeId;
-        localStorage.setItem('lastStrokeId', newStrokeId);
-
-        console.log(`Loaded ${newStrokes.length} new strokes starting from ID ${startAt}`);
-        renderStrokes(canvas, ctx, newStrokes);
-        return newStrokeId;
-    } catch (e) {
-        console.error(e);
-        return startAt;
-    }
-}
-
-async function loadCanvasStrokesWithoutCache(canvas, ctx) {
-    try {
-        const params = new URLSearchParams({ startAt: 0 });
-        const response = await fetch(`/api/load_strokes?${params.toString()}`);
-        const data = await response.json();
-
-        if (!response.ok) {
-            console.error(data.error);
-            return 0;
-        }
-
-        const newStrokes = (data.strokes || []).map(stroke => ({
-            ...stroke,
-            path: decompressPath(stroke.path),
-        }));
-
-        const lastStrokeId = newStrokes.length > 0 ? newStrokes[newStrokes.length - 1].id : 0;
+        const lastStrokeId = newStrokes.length > 0 ? newStrokes[newStrokes.length - 1].id : (useCache ? cachedLastStrokeId : 0);
         localStorage.setItem('lastStrokeId', lastStrokeId);
 
-        console.log(`Loaded ${newStrokes.length} strokes from the server`);
         renderStrokes(canvas, ctx, newStrokes);
         return lastStrokeId;
     } catch (e) {
         console.error(e);
-        return 0;
+        return useCache ? startAt : 0;
     }
 }
+
 
 function saveCanvasPosition(left, top) {
     localStorage.setItem('canvasPosition', JSON.stringify({ left, top }));
@@ -550,11 +523,10 @@ document.addEventListener('DOMContentLoaded', async () => {
     applyZoom(canvas);
     updateZoomButtons();
 
-    let lastStrokeId = await loadCanvasStrokesWithoutCache(canvas, ctx);
+    let lastStrokeId = await loadCanvasStrokes(canvas, ctx, { useCache: false });
     setInterval(async () => {
         if (!window._canvasDrawing) {
-            console.log('checking for new strokes...');
-            lastStrokeId = await loadCanvasStrokesWithCache(canvas, ctx, lastStrokeId + 1);
+            lastStrokeId = await loadCanvasStrokes(canvas, ctx, { startAt: lastStrokeId + 1 });
         }
     }, 1000);
 });
