@@ -98,7 +98,7 @@ function decompressPath(pathStr) {
 
 async function loadCanvasStrokesWithCache(canvas, ctx, startAt = 0) {
     try {
-        const lastStrokeId = localStorage.getItem('lastStrokeId') || 0;
+        const lastStrokeId = parseInt(localStorage.getItem('lastStrokeId'), 10) || 0;
 
         const params = new URLSearchParams({ startAt });
         const response = await fetch(`/api/load_strokes?${params.toString()}`);
