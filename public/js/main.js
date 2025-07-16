@@ -203,6 +203,7 @@ function zoomIn(canvas) {
     localStorage.setItem('canvasZoomLevel', zoomLevel);
     applyZoom(canvas);
     updateZoomButtons();
+    loadCanvasPosition();
 }
 
 function zoomOut(canvas) {
@@ -210,6 +211,7 @@ function zoomOut(canvas) {
     localStorage.setItem('canvasZoomLevel', zoomLevel);
     applyZoom(canvas);
     updateZoomButtons();
+    loadCanvasPosition();
 }
 
 function updateZoomButtons() {
