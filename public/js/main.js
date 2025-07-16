@@ -223,7 +223,7 @@ function mouseEvents(canvas, ctx) {
     const container = document.getElementById('canvas-container');
     const drawCanvas = document.getElementById('draw-canvas');
     let isDragging = false, dragStartX = 0, dragStartY = 0, containerStartX = 0, containerStartY = 0;
-    let currentStroke = null, drawing = false, drawPending = false;
+    let currentStroke = null, drawing = false;
     window._canvasDrawing = false;
 
     // mouse drawing functionality
@@ -248,23 +248,13 @@ function mouseEvents(canvas, ctx) {
         const x = e.offsetX;
         const y = e.offsetY;
         const last = currentStroke.path[currentStroke.path.length - 1];
-        if (last.x === x && last.y === y) return;
+        if (last && last.x === x && last.y === y) return;
 
+        ctx.beginPath();
+        ctx.moveTo(last.x, last.y);
+        ctx.lineTo(x, y);
+        ctx.stroke();
         currentStroke.path.push({ x, y });
-
-        if (!drawPending) {
-            drawPending = true;
-            requestAnimationFrame(() => {
-                const p = currentStroke.path;
-                if (p.length < 2) return;
-
-                ctx.beginPath();
-                ctx.moveTo(p[p.length - 2].x, p[p.length - 2].y);
-                ctx.lineTo(p[p.length - 1].x, p[p.length - 1].y);
-                ctx.stroke();
-                drawPending = false;
-            });
-        }
     });
 
     canvas.addEventListener('mouseup', async e => {
