@@ -35,15 +35,15 @@ function applyZoom(canvas) {
     localStorage.setItem('canvasZoomLevel', zoomLevel);
 }
 
-function centerCanvas(canvas, resetZoom = false) {
+function centerCanvas(canvas, resetZoom = false, savePosition = true) {
     const container = document.getElementById('canvas-container');
     container.style.left = '50%';
     container.style.top = '50%';
     container.style.transform = 'translate(-50%, -50%)';
     if (resetZoom) zoomLevel = MIN_ZOOM;
+    if (savePosition) saveCanvasPosition(container.style.left, container.style.top);
 
     applyZoom(canvas);
-    saveCanvasPosition(container.style.left, container.style.top);
     updateZoomButtons();
 }
 
@@ -202,7 +202,7 @@ function zoomIn(canvas) {
     zoomLevel = Math.min(zoomLevel + ZOOM_STEP, MAX_ZOOM);
     localStorage.setItem('canvasZoomLevel', zoomLevel);
 
-    centerCanvas(canvas);
+    centerCanvas(canvas, false);
     loadCanvasPosition();
 
     applyZoom(canvas);
@@ -213,7 +213,7 @@ function zoomOut(canvas) {
     zoomLevel = Math.round(Math.max(zoomLevel - ZOOM_STEP, MIN_ZOOM) * 10) / 10;
     localStorage.setItem('canvasZoomLevel', zoomLevel);
 
-    centerCanvas(canvas);
+    centerCanvas(canvas, false);
     loadCanvasPosition();
 
     applyZoom(canvas);
