@@ -100,17 +100,24 @@ function decompressPath(pathStr) {
     });
 }
 
+function compressPath(path) {
+    // [{x: 100, y: 150}, {x: 101, y: 151}] to "100,150;101,151"
+    return path.map(point => `${point.x},${point.y}`).join(';');
+}
+
 async function saveCachedStrokes(strokes) {
     try {
-        const keepUntil = Math.max(0, strokes.length - 24);
-        const cachedStrokes = strokes.slice(0, keepUntil);
+        if (strokes.length === 0) return;
+        const cachedStrokes = strokes.map(stroke => ({
+            ...stroke,
+            path: compressPath(stroke.path)
+        }));
 
         const db = await dbPromise;
         const tx = db.transaction('strokes', 'readwrite');
         const store = tx.objectStore('strokes');
 
         await store.clear(); // remove old strokes
-
         for (const stroke of cachedStrokes) {
             await store.put(stroke);
         }
@@ -132,12 +139,15 @@ async function loadCachedStrokes() {
     }
 }
 
-async function loadCanvasStrokes(canvas, ctx, clearCanvas = true, startAt = 0) {
+async function loadCanvasStrokesWithCache(canvas, ctx, startAt = 0) {
     try {
         const cachedStrokes = await loadCachedStrokes();
         let lastCachedId = cachedStrokes.length > 0 ? cachedStrokes[cachedStrokes.length - 1].id : 0;
 
-        if (clearCanvas) startAt = lastCachedId + 1;
+        if (lastCachedId >= startAt) {
+            renderStrokes(canvas, ctx, cachedStrokes);
+            return lastCachedId;
+        }
 
         const params = new URLSearchParams({ startAt });
         const response = await fetch(`/api/load_strokes?${params.toString()}`);
@@ -153,17 +163,37 @@ async function loadCanvasStrokes(canvas, ctx, clearCanvas = true, startAt = 0) {
             path: decompressPath(stroke.path),
         }));
 
-        // merge cached and new strokes
-        const combined = cachedStrokes.concat(newStrokes);
-        await saveCachedStrokes(combined);
-
-        if (clearCanvas) renderStrokes(canvas, ctx, combined, true);
-        else renderStrokes(canvas, ctx, newStrokes, false);
-
-        return newStrokes.length > 0 ? newStrokes[newStrokes.length - 1].id : lastCachedId;
+        await saveCachedStrokes(newStrokes);
+        renderStrokes(canvas, ctx, newStrokes);
+        return newStrokes.length > 0 ? newStrokes[newStrokes.length - 1].id : 0;
     } catch (e) {
         console.error(e);
         return startAt;
+    }
+}
+
+async function loadCanvasStrokesWithoutCache(canvas, ctx) {
+    try {
+        const params = new URLSearchParams({ startAt: 0 });
+        const response = await fetch(`/api/load_strokes?${params.toString()}`);
+        const data = await response.json();
+
+        if (!response.ok) {
+            console.error(data.error);
+            return 0;
+        }
+
+        const newStrokes = (data.strokes || []).map(stroke => ({
+            ...stroke,
+            path: decompressPath(stroke.path),
+        }));
+
+        await saveCachedStrokes(newStrokes);
+        renderStrokes(canvas, ctx, newStrokes);
+        return newStrokes.length > 0 ? newStrokes[newStrokes.length - 1].id : 0;
+    } catch (e) {
+        console.error(e);
+        return 0;
     }
 }
 
@@ -563,18 +593,14 @@ document.addEventListener('DOMContentLoaded', async () => {
     eventListeners(canvas, ctx);
     loadCanvasPosition();
     applyZoom(canvas);
-    await loadCanvasStrokes(canvas, ctx);
+    await loadCanvasStrokesWithoutCache(canvas, ctx);
 
     updateZoomButtons();
 
     let lastStrokeRowId = parseInt(localStorage.getItem('lastStrokeRowId'), 10) || 0;
-    let counter = 0;
     setInterval(async () => {
         if (!window._canvasDrawing) {
-            counter++;
-            const clearCanvas = counter % 5 === 0;
-
-            lastStrokeRowId = await loadCanvasStrokes(canvas, ctx, clearCanvas, lastStrokeRowId);
+            lastStrokeRowId = await loadCanvasStrokesWithCache(canvas, ctx, lastStrokeRowId);
             localStorage.setItem('lastStrokeRowId', lastStrokeRowId);
         }
     }, 1000);
