@@ -31,7 +31,6 @@ function resetIdleTimer() {
 
 function applyZoom(canvas) {
     canvas.style.transform = `scale(${zoomLevel})`;
-    canvas.style.transformOrigin = 'center center';
     localStorage.setItem('canvasZoomLevel', zoomLevel);
 }
 
@@ -174,7 +173,6 @@ function renderStrokes(canvas, ctx, strokes, clearCanvas = false) {
 function zoomIn(canvas) {
     zoomLevel = Math.min(zoomLevel + ZOOM_STEP, MAX_ZOOM);
     localStorage.setItem('canvasZoomLevel', zoomLevel);
-    loadCanvasPosition();
     applyZoom(canvas);
     updateZoomButtons();
 }
@@ -182,7 +180,6 @@ function zoomIn(canvas) {
 function zoomOut(canvas) {
     zoomLevel = Math.round(Math.max(zoomLevel - ZOOM_STEP, MIN_ZOOM) * 10) / 10;
     localStorage.setItem('canvasZoomLevel', zoomLevel);
-    loadCanvasPosition();
     applyZoom(canvas);
     updateZoomButtons();
 }
