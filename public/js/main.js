@@ -78,7 +78,7 @@ async function queueSave() {
     isSaving = true;
     while (strokeQueue.length > 0) {
         const stroke = strokeQueue.shift();
-        await saveCanvasStrokes(stroke);
+        // await saveCanvasStrokes(stroke);
     }
     isSaving = false;
 }
@@ -542,9 +542,12 @@ document.addEventListener('DOMContentLoaded', async () => {
     updateZoomButtons();
 
     let lastStrokeId = await loadCanvasStrokes(canvas, ctx, { useCache: false });
+
+    alert('The drawing phase has ended. The canvas is now read-only. You can still view the strokes but cannot draw anymore.');
+
     setInterval(async () => {
         if (!window._canvasDrawing) {
             lastStrokeId = await loadCanvasStrokes(canvas, ctx, { startAt: lastStrokeId + 1 });
         }
-    }, 1000);
+    }, 10000000000);
 });
