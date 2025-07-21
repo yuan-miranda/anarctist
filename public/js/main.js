@@ -11,6 +11,26 @@ let zoomLevel = MIN_ZOOM;
 
 let isEraserMode = false;
 
+function toggleColorPicker() {
+    const collapseBtn = document.getElementById('toggleCollapse');
+    const colorOptions = document.querySelector('.color-options');
+    const svgDown = document.getElementById('collapseDown');
+    const svgUp = document.getElementById('collapseUp');
+
+    collapseBtn.addEventListener('click', () => {
+        const collapsed = colorOptions.classList.toggle('collapsed');
+        if (collapsed) {
+            svgDown.style.display = 'none';
+            svgUp.style.display = '';
+            collapseBtn.style.border = '2px solid #333';
+        } else {
+            svgDown.style.display = '';
+            svgUp.style.display = 'none';
+            collapseBtn.style.border = '';
+        }
+    });
+}
+
 function highlightSelectedColor(selectedBtn) {
     const colorButtons = document.querySelectorAll('.color-btn');
     colorButtons.forEach(btn => btn.classList.remove('selected'));
@@ -495,6 +515,7 @@ function eventListeners(canvas, ctx) {
     touchEvents(canvas, ctx);
     buttonEvents(canvas, ctx);
     colorEvents(ctx);
+    toggleColorPicker();
 
     ['mousemove', 'mousedown', 'keydown', 'touchstart', 'touchmove'].forEach(e => {
         window.addEventListener(e, resetIdleTimer, { passive: true });
