@@ -11,7 +11,7 @@
 <body>
     <h1>Anarctist</h1>
     <div id="canvas-container">
-        <canvas id="draw-canvas" width="16384" height="16384"></canvas>
+        <canvas id="draw-canvas" width="1000" height="1000"></canvas>
     </div>
 
     <!-- canvas actions: Center and Save -->
@@ -50,8 +50,8 @@
     <!-- color actions: Toggle Collapse, Color Selection, Stroke Size -->
     <div class="color-actions">
         <button id="toggleCollapse" style="background: #ffffff;" title="Toggle Collapse">
-            <img id="collapseDown" src="media/icon/collapseDown.svg" alt="Collapse Down" style="display: block;" width="32"
-                height="32">
+            <img id="collapseDown" src="media/icon/collapseDown.svg" alt="Collapse Down" style="display: block;"
+                width="32" height="32">
             <img id="collapseUp" src="media/icon/collapseUp.svg" alt="Collapse Up" style="display: none;" width="32"
                 height="32">
         </button>
@@ -79,7 +79,9 @@
                 style="display: inline-flex; align-items: center; justify-content: center;">2</span>
         </div>
     </div>
-    <script src="js/main.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/fabric@latest/dist/index.min.js"></script>
+    <!-- <script src="js/main.js"></script> -->
+    <script type="module" src="js/new_main.js"></script>
 </body>
 
 </html>
