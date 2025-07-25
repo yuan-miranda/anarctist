@@ -28,7 +28,6 @@ h1 {
 }
 
 #draw-canvas {
-    display: block;
     background: #fff;
     border: 32px solid #ccc;
 }
