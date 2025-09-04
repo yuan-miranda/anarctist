@@ -56,7 +56,6 @@
 <body>
     <div id="container"></div>
 
-    <!-- Controls -->
     <div id="controls">
         <input type="range" id="strokeSize" min="1" max="10" value="5">
         <span id="strokeLabel"></span>
@@ -65,12 +64,7 @@
     <script src="https://unpkg.com/konva@9/konva.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/kursor"></script>
     <script>
-        new kursor({
-            type: 5,
-            removeDefaultCursor: true,
-        });
-
-        // --- Stage & Layer Initialization ---
+        new kursor({ type: 5, removeDefaultCursor: true });
 
         Konva.pixelRatio = 1;
         const stage = new Konva.Stage({
@@ -78,22 +72,22 @@
             width: window.innerWidth,
             height: window.innerHeight
         });
+
         const layer = new Konva.Layer();
         stage.add(layer);
 
-        // --- Page Setup ---
-        const pageWidth = 524288;
-        const pageHeight = 524288;
+        const PAGE_WIDTH = 524288;
+        const PAGE_HEIGHT = 524288;
 
         const pageGroup = new Konva.Group({
-            clip: { x: 0, y: 0, width: pageWidth, height: pageHeight },
+            clip: { x: 0, y: 0, width: PAGE_WIDTH, height: PAGE_HEIGHT },
         });
 
         const page = new Konva.Rect({
             x: 0,
             y: 0,
-            width: pageWidth,
-            height: pageHeight,
+            width: PAGE_WIDTH,
+            height: PAGE_HEIGHT,
             fill: '#fff',
             stroke: '#ccc',
             strokeWidth: 2,
@@ -102,44 +96,31 @@
         pageGroup.add(page);
         layer.add(pageGroup);
 
-        // --- Stroke Controls ---
-        const strokeSizeInput = document.getElementById("strokeSize");
+        const strokeInput = document.getElementById("strokeSize");
         const strokeLabel = document.getElementById("strokeLabel");
-        let strokeSize = parseInt(strokeSizeInput.value, 10);
+        let strokeSize = parseInt(strokeInput.value, 10);
 
-        const updateStrokeLabel = () => {
-            strokeLabel.textContent = `Stroke: ${strokeSize}px`;
-        };
+        const updateStrokeLabel = () => strokeLabel.textContent = `Stroke: ${strokeSize}px`;
         updateStrokeLabel();
 
-        // --- Cursor Preview ---
-        const cursorFill = new Konva.Circle({
+        strokeInput.addEventListener("input", () => {
+            strokeSize = parseInt(strokeInput.value, 10);
+            updateStrokeLabel();
+            cursorCircle.radius(strokeSize / 2);
+            layer.batchDraw();
+        });
+
+        const cursorCircle = new Konva.Circle({
             radius: strokeSize / 2,
-            fill: 'rgba(0, 0, 0, 0.06)',
+            fill: 'rgba(0,0,0,0.06)',
             listening: false,
             visible: false
         });
+        layer.add(cursorCircle);
+        cursorCircle.moveToTop();
 
-        layer.add(cursorFill);
-        cursorFill.moveToTop();
-
-        const updateCursor = () => {
-            cursorFill.radius(strokeSize / 2);
-            const padding = Math.max(0.5, strokeSize * 0.2);
-            layer.batchDraw();
-        };
-
-        strokeSizeInput.addEventListener("input", () => {
-            strokeSize = parseInt(strokeSizeInput.value, 10);
-            updateStrokeLabel();
-            updateCursor();
-        });
-
-        // --- Drawing Logic ---
         let isDrawing = false;
         let currentLine = null;
-
-        stage.container().addEventListener('contextmenu', e => e.preventDefault());
 
         const getPointerPos = () => {
             const transform = stage.getAbsoluteTransform().copy();
@@ -147,20 +128,27 @@
             return transform.point(stage.getPointerPosition());
         };
 
+        const endDrawing = () => {
+            isDrawing = false;
+            currentLine = null;
+        };
+
+        stage.container().addEventListener('contextmenu', e => e.preventDefault());
+
         stage.on('mousedown touchstart', (e) => {
             const pos = getPointerPos();
-            if (e.evt.button === 0) { // Left click
+            if (e.evt.button === 0) {
                 isDrawing = true;
                 currentLine = new Konva.Line({
                     stroke: 'black',
                     strokeWidth: strokeSize,
+                    globalCompositeOperation: 'source-over',
                     points: [pos.x, pos.y, pos.x, pos.y],
                     lineCap: 'round',
                     lineJoin: 'round',
                 });
                 pageGroup.add(currentLine);
-                layer.batchDraw();
-            } else if (e.evt.button === 2) { // Right click drag
+            } else if (e.evt.button === 2) {
                 stage.draggable(true);
                 stage.startDrag();
             }
@@ -170,8 +158,8 @@
             const pos = getPointerPos();
             if (!pos) return;
 
-            cursorFill.position(pos);
-            cursorFill.visible(true);
+            cursorCircle.position(pos);
+            cursorCircle.visible(true);
 
             if (isDrawing && currentLine) {
                 currentLine.points(currentLine.points().concat([pos.x, pos.y]));
@@ -180,31 +168,37 @@
             layer.batchDraw();
         });
 
-        const endDrawing = () => {
-            isDrawing = false;
-            currentLine = null;
-        };
-
-        stage.on('mouseleave', () => { cursorFill.visible(false); endDrawing(); });
         stage.on('mouseup touchend', (e) => {
             if (e.evt.button === 0) endDrawing();
             else if (e.evt.button === 2) stage.draggable(false);
         });
 
+        stage.on('mouseleave', () => { cursorCircle.visible(false); endDrawing(); });
         window.addEventListener('blur', endDrawing);
 
-        // --- Zoom with viewport center ---
+
         stage.on('wheel', (e) => {
             e.evt.preventDefault();
-            const oldScale = stage.scaleX();
+
+            if (!e.evt.ctrlKey) return;
+
             const scaleBy = 1.02;
+            const oldScale = stage.scaleX();
+            const pointer = stage.getPointerPosition();
+
+            const mousePointTo = {
+                x: (pointer.x - stage.x()) / oldScale,
+                y: (pointer.y - stage.y()) / oldScale
+            };
+
             const newScale = e.evt.deltaY > 0 ? oldScale / scaleBy : oldScale * scaleBy;
-
-            const center = { x: stage.width() / 2, y: stage.height() / 2 };
-            const centerTo = { x: (center.x - stage.x()) / oldScale, y: (center.y - stage.y()) / oldScale };
-
             stage.scale({ x: newScale, y: newScale });
-            stage.position({ x: center.x - centerTo.x * newScale, y: center.y - centerTo.y * newScale });
+
+            stage.position({
+                x: pointer.x - mousePointTo.x * newScale,
+                y: pointer.y - mousePointTo.y * newScale
+            });
+
             stage.batchDraw();
         });
 
