@@ -3,42 +3,63 @@
 
 <head>
     <meta charset="UTF-8">
-    <title>Konva Whiteboard (Finite Page)</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Anarchy Canvas Sketch</title>
     <link rel="stylesheet" href="https://unpkg.com/kursor/dist/kursor.css">
     <style>
-        body {
+        * {
             margin: 0;
-            overflow: hidden;
-            font-family: sans-serif;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: Arial, Helvetica, sans-serif;
+        }
+
+        h1 {
+            position: fixed;
+            top: 10px;
+            left: 10px;
+            z-index: 1;
+            margin: 1rem;
+            color: #333;
         }
 
         #container {
-            width: 100vw;
-            height: 100vh;
-            background: #e5e5e5;
+            background: #f0f0f0;
             cursor: none;
         }
 
-        #controls {
+        .link-actions {
             position: fixed;
-            top: 10px;
+            margin: 1rem;
+            z-index: 1;
+            bottom: 10px;
             right: 10px;
-            background: rgba(255, 255, 255, 0.9);
-            padding: 8px 12px;
-            border-radius: 8px;
-            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
-            z-index: 1000;
         }
 
-        #strokeSize {
-            width: 120px;
+        .canvas-actions,
+        .link-actions,
+        .zoom-actions,
+        .color-actions {
+            position: fixed;
+            margin: 1rem;
+            z-index: 1;
         }
 
-        #strokeLabel {
-            display: block;
-            text-align: center;
-            font-size: 14px;
-            margin-top: 4px;
+        .zoom-actions {
+            bottom: 10px;
+            left: 10px;
+        }
+
+        .canvas-actions button,
+        .zoom-actions button,
+        .canvas-actions-minified button {
+            padding: 0.8rem 1rem;
+            background: #fff;
+            border: 1px solid #ccc;
+            border-radius: 4px;
         }
 
         .kursor--5,
@@ -54,11 +75,27 @@
 </head>
 
 <body>
+    <h1>Anarctist</h1>
     <div id="container"></div>
 
     <div id="controls">
         <input type="range" id="strokeSize" min="1" max="10" value="5">
         <span id="strokeLabel"></span>
+    </div>
+
+    <div class="link-actions">
+        <a href="https://github.com/yuan-miranda/crystel" target="_blank" aria-label="GitHub Repository">
+            <img src="media/icon/github-mark.svg" alt="GitHub" width="32" height="32" title="GitHub Repository">
+        </a>
+    </div>
+
+    <div class="zoom-actions">
+        <button id="zoomIn" title="Zoom In">
+            <img src="media/icon/zoomIn.svg" alt="Zoom In" width="24" height="24">
+        </button>
+        <button id="zoomOut" title="Zoom Out">
+            <img src="media/icon/zoomOut.svg" alt="Zoom Out" width="24" height="24">
+        </button>
     </div>
 
     <script src="https://unpkg.com/konva@9/konva.min.js"></script>
@@ -177,136 +214,28 @@
         window.addEventListener('blur', endDrawing);
 
 
-        stage.on('wheel', (e) => {
-            e.evt.preventDefault();
+        // stage.on('wheel', (e) => {
+        //     e.evt.preventDefault();
 
-            if (!e.evt.ctrlKey) return;
+        //     const scaleBy = 1.02;
+        //     const oldScale = stage.scaleX();
+        //     const pointer = stage.getPointerPosition();
 
-            const scaleBy = 1.02;
-            const oldScale = stage.scaleX();
-            const pointer = stage.getPointerPosition();
+        //     const mousePointTo = {
+        //         x: (pointer.x - stage.x()) / oldScale,
+        //         y: (pointer.y - stage.y()) / oldScale
+        //     };
 
-            const mousePointTo = {
-                x: (pointer.x - stage.x()) / oldScale,
-                y: (pointer.y - stage.y()) / oldScale
-            };
+        //     const newScale = e.evt.deltaY > 0 ? oldScale / scaleBy : oldScale * scaleBy;
+        //     stage.scale({ x: newScale, y: newScale });
 
-            const newScale = e.evt.deltaY > 0 ? oldScale / scaleBy : oldScale * scaleBy;
-            stage.scale({ x: newScale, y: newScale });
+        //     stage.position({
+        //         x: pointer.x - mousePointTo.x * newScale,
+        //         y: pointer.y - mousePointTo.y * newScale
+        //     });
 
-            stage.position({
-                x: pointer.x - mousePointTo.x * newScale,
-                y: pointer.y - mousePointTo.y * newScale
-            });
-
-            stage.batchDraw();
-        });
-
-
-
-
-
-
-        let lastTouchDistance = 0;
-        let lastTouchMidpoint = null;
-        let isPanning = false;
-
-        function getDistance(t1, t2) {
-            const dx = t1.clientX - t2.clientX;
-            const dy = t1.clientY - t2.clientY;
-            return Math.sqrt(dx * dx + dy * dy);
-        }
-
-        function getMidpoint(t1, t2) {
-            return {
-                x: (t1.clientX + t2.clientX) / 2,
-                y: (t1.clientY + t2.clientY) / 2
-            };
-        }
-
-        stage.container().addEventListener('touchstart', e => {
-            if (e.touches.length === 1) {
-                // One finger → start drawing
-                const pos = getPointerPos();
-                if (!pos) return;
-
-                isDrawing = true;
-                currentLine = new Konva.Line({
-                    stroke: 'black',
-                    strokeWidth: strokeSize,
-                    globalCompositeOperation: 'source-over',
-                    points: [pos.x, pos.y, pos.x, pos.y],
-                    lineCap: 'round',
-                    lineJoin: 'round',
-                });
-                pageGroup.add(currentLine);
-            } else if (e.touches.length === 2) {
-                // Two fingers → start pan/zoom
-                isPanning = true;
-                lastTouchDistance = getDistance(e.touches[0], e.touches[1]);
-                lastTouchMidpoint = getMidpoint(e.touches[0], e.touches[1]);
-            }
-        }, { passive: false });
-
-        stage.container().addEventListener('touchmove', e => {
-            if (e.touches.length === 1 && isDrawing && currentLine) {
-                e.preventDefault();
-                // Drawing with one finger
-                const pos = getPointerPos();
-                if (!pos) return;
-
-                cursorCircle.position(pos);
-                cursorCircle.visible(true);
-                currentLine.points(currentLine.points().concat([pos.x, pos.y]));
-                layer.batchDraw();
-            } else if (e.touches.length >= 2 && isPanning) {
-                e.preventDefault();
-                // Pan & pinch zoom with two fingers
-                const midpoint = getMidpoint(e.touches[0], e.touches[1]);
-                const distance = getDistance(e.touches[0], e.touches[1]);
-
-                // Zoom
-                const oldScale = stage.scaleX();
-                const scaleChange = distance / lastTouchDistance;
-                const mousePointTo = {
-                    x: (midpoint.x - stage.x()) / oldScale,
-                    y: (midpoint.y - stage.y()) / oldScale
-                };
-                const newScale = oldScale * scaleChange;
-                stage.scale({ x: newScale, y: newScale });
-
-                // Pan
-                const dx = midpoint.x - lastTouchMidpoint.x;
-                const dy = midpoint.y - lastTouchMidpoint.y;
-                stage.position({
-                    x: stage.x() + dx,
-                    y: stage.y() + dy
-                });
-
-                stage.batchDraw();
-
-                lastTouchDistance = distance;
-                lastTouchMidpoint = midpoint;
-            }
-        }, { passive: false });
-
-        stage.container().addEventListener('touchend', e => {
-            if (e.touches.length < 2) {
-                isPanning = false;
-                lastTouchDistance = 0;
-                lastTouchMidpoint = null;
-            }
-            if (e.touches.length === 0) {
-                isDrawing = false;
-                currentLine = null;
-            }
-        }, { passive: false });
-
-
-
-
-
-
+        //     stage.batchDraw();
+        // });
 
         window.addEventListener('resize', () => {
             stage.width(window.innerWidth);
