@@ -4,6 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <title>Konva Whiteboard (Finite Page)</title>
+    <link rel="stylesheet" href="https://unpkg.com/kursor/dist/kursor.css">
     <style>
         body {
             margin: 0;
@@ -39,8 +40,17 @@
             font-size: 14px;
             margin-top: 4px;
         }
+
+        .kursor--5,
+        .kursorChild--5 {
+            transition: none !important;
+        }
+
+        .kursor--5.kursor--down {
+            width: 10px !important;
+            height: 10px !important;
+        }
     </style>
-    <script src="https://unpkg.com/konva@9/konva.min.js"></script>
 </head>
 
 <body>
@@ -52,9 +62,16 @@
         <span id="strokeLabel"></span>
     </div>
 
+    <script src="https://unpkg.com/konva@9/konva.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/kursor"></script>
     <script>
+        new kursor({
+            type: 5,
+            removeDefaultCursor: true,
+        });
+
         // --- Stage & Layer Initialization ---
-        
+
         Konva.pixelRatio = 1;
         const stage = new Konva.Stage({
             container: 'container',
@@ -98,28 +115,17 @@
         // --- Cursor Preview ---
         const cursorFill = new Konva.Circle({
             radius: strokeSize / 2,
-            fill: 'rgba(0,0,0,0.3)',
+            fill: 'rgba(0, 0, 0, 0.06)',
             listening: false,
             visible: false
         });
 
-        const cursorRing = new Konva.Circle({
-            radius: strokeSize / 2 + 2,
-            stroke: 'black',
-            strokeWidth: 1,
-            listening: false,
-            visible: false
-        });
-
-        layer.add(cursorFill, cursorRing);
+        layer.add(cursorFill);
         cursorFill.moveToTop();
-        cursorRing.moveToTop();
 
         const updateCursor = () => {
             cursorFill.radius(strokeSize / 2);
             const padding = Math.max(0.5, strokeSize * 0.2);
-            cursorRing.radius(strokeSize / 2 + padding);
-            cursorRing.strokeWidth(Math.max(0.5, strokeSize * 0.15));
             layer.batchDraw();
         };
 
@@ -165,9 +171,7 @@
             if (!pos) return;
 
             cursorFill.position(pos);
-            cursorRing.position(pos);
             cursorFill.visible(true);
-            cursorRing.visible(true);
 
             if (isDrawing && currentLine) {
                 currentLine.points(currentLine.points().concat([pos.x, pos.y]));
@@ -181,7 +185,7 @@
             currentLine = null;
         };
 
-        stage.on('mouseleave', () => { cursorFill.visible(false); cursorRing.visible(false); endDrawing(); });
+        stage.on('mouseleave', () => { cursorFill.visible(false); endDrawing(); });
         stage.on('mouseup touchend', (e) => {
             if (e.evt.button === 0) endDrawing();
             else if (e.evt.button === 2) stage.draggable(false);
