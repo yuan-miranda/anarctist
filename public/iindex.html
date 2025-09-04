@@ -208,19 +208,12 @@
 
 
         let lastTouchDistance = 0;
+        let lastTouchMidpoint = null;
+        let isPanning = false;
 
-        const getDistance = (touch1, touch2) => {
-            const dx = touch1.clientX - touch2.clientX;
-            const dy = touch1.clientY - touch2.clientY;
-            return Math.sqrt(dx * dx + dy * dy);
-        };
-
-        stage.container().addEventListener('touchstart', (e) => {
-            if (e.touches.length === 2) {
-                // pinch zoom start
-                lastTouchDistance = getDistance(e.touches[0], e.touches[1]);
-            } else if (e.touches.length === 1) {
-                // start drawing
+        stage.container().addEventListener('touchstart', e => {
+            if (e.touches.length === 1) {
+                // 1 finger → drawing
                 const pos = getPointerPos();
                 isDrawing = true;
                 currentLine = new Konva.Line({
@@ -232,55 +225,73 @@
                     lineJoin: 'round',
                 });
                 pageGroup.add(currentLine);
-            }
-        });
-
-        stage.container().addEventListener('touchmove', (e) => {
-            if (e.touches.length === 2) {
-                e.preventDefault(); // prevent scrolling
-
-                // pinch zoom
-                const touchDistance = getDistance(e.touches[0], e.touches[1]);
-                if (!lastTouchDistance) lastTouchDistance = touchDistance;
-
-                const scaleBy = touchDistance / lastTouchDistance;
-                const oldScale = stage.scaleX();
-
-                // midpoint for zooming
-                const pointer = {
+            } else if (e.touches.length === 2) {
+                // 2 fingers → pan & pinch zoom
+                isPanning = true;
+                lastTouchDistance = getDistance(e.touches[0], e.touches[1]);
+                lastTouchMidpoint = {
                     x: (e.touches[0].clientX + e.touches[1].clientX) / 2,
                     y: (e.touches[0].clientY + e.touches[1].clientY) / 2
                 };
+            }
+        }, { passive: false });
 
-                const mousePointTo = {
-                    x: (pointer.x - stage.x()) / oldScale,
-                    y: (pointer.y - stage.y()) / oldScale
-                };
-
-                const newScale = oldScale * scaleBy;
-                stage.scale({ x: newScale, y: newScale });
-
-                stage.position({
-                    x: pointer.x - mousePointTo.x * newScale,
-                    y: pointer.y - mousePointTo.y * newScale
-                });
-
-                stage.batchDraw();
-                lastTouchDistance = touchDistance;
-            } else if (e.touches.length === 1 && isDrawing && currentLine) {
-                // drawing with one finger
+        stage.container().addEventListener('touchmove', e => {
+            if (e.touches.length === 1 && isDrawing && currentLine) {
+                e.preventDefault();
+                // 1 finger drawing
                 const pos = getPointerPos();
                 cursorCircle.position(pos);
                 cursorCircle.visible(true);
                 currentLine.points(currentLine.points().concat([pos.x, pos.y]));
                 layer.batchDraw();
-            }
-        });
+            } else if (e.touches.length === 2 && isPanning) {
+                e.preventDefault();
+                const currentDistance = getDistance(e.touches[0], e.touches[1]);
+                const scaleChange = currentDistance / lastTouchDistance;
+                const oldScale = stage.scaleX();
 
-        stage.container().addEventListener('touchend', (e) => {
-            if (e.touches.length < 2) lastTouchDistance = 0;
-            if (e.touches.length === 0) endDrawing();
-        });
+                // midpoint for pan + zoom
+                const midpoint = {
+                    x: (e.touches[0].clientX + e.touches[1].clientX) / 2,
+                    y: (e.touches[0].clientY + e.touches[1].clientY) / 2
+                };
+
+                // zoom
+                const mousePointTo = {
+                    x: (midpoint.x - stage.x()) / oldScale,
+                    y: (midpoint.y - stage.y()) / oldScale
+                };
+                const newScale = oldScale * scaleChange;
+                stage.scale({ x: newScale, y: newScale });
+
+                // pan
+                const dx = midpoint.x - lastTouchMidpoint.x;
+                const dy = midpoint.y - lastTouchMidpoint.y;
+                stage.position({
+                    x: stage.x() + dx,
+                    y: stage.y() + dy
+                });
+
+                stage.batchDraw();
+                lastTouchDistance = currentDistance;
+                lastTouchMidpoint = midpoint;
+            }
+        }, { passive: false });
+
+        stage.container().addEventListener('touchend', e => {
+            if (e.touches.length === 0) {
+                isDrawing = false;
+                currentLine = null;
+                isPanning = false;
+                lastTouchDistance = 0;
+                lastTouchMidpoint = null;
+            } else if (e.touches.length < 2) {
+                isPanning = false;
+                lastTouchDistance = 0;
+                lastTouchMidpoint = null;
+            }
+        }, { passive: false });
 
 
 
