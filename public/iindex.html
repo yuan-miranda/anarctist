@@ -217,30 +217,6 @@
         stage.on('mouseleave', () => { cursorCircle.visible(false); endDrawing(); });
         window.addEventListener('blur', endDrawing);
 
-
-        // stage.on('wheel', (e) => {
-        //     e.evt.preventDefault();
-
-        //     const scaleBy = 1.02;
-        //     const oldScale = stage.scaleX();
-        //     const pointer = stage.getPointerPosition();
-
-        //     const mousePointTo = {
-        //         x: (pointer.x - stage.x()) / oldScale,
-        //         y: (pointer.y - stage.y()) / oldScale
-        //     };
-
-        //     const newScale = e.evt.deltaY > 0 ? oldScale / scaleBy : oldScale * scaleBy;
-        //     stage.scale({ x: newScale, y: newScale });
-
-        //     stage.position({
-        //         x: pointer.x - mousePointTo.x * newScale,
-        //         y: pointer.y - mousePointTo.y * newScale
-        //     });
-
-        //     stage.batchDraw();
-        // });
-
         window.addEventListener('resize', () => {
             stage.width(window.innerWidth);
             stage.height(window.innerHeight);
@@ -302,7 +278,54 @@
         zoomOutBtn.addEventListener('mouseleave', stopZoom);
         zoomOutBtn.addEventListener('touchend', stopZoom);
 
+        // ===== Two-finger panning for mobile =====
+        let isTwoFingerPanning = false;
+        let lastCenter = null;
+
+        function getCenter(t1, t2) {
+            return {
+                x: (t1.clientX + t2.clientX) / 2,
+                y: (t1.clientY + t2.clientY) / 2
+            };
+        }
+
+        stage.getContent().addEventListener('touchstart', (e) => {
+            if (e.touches.length === 2) {
+                isTwoFingerPanning = true;
+                lastCenter = getCenter(e.touches[0], e.touches[1]);
+
+                // stop drawing if we were
+                isDrawing = false;
+                currentLine = null;
+            }
+        }, { passive: false });
+
+        stage.getContent().addEventListener('touchmove', (e) => {
+            if (e.touches.length === 2 && isTwoFingerPanning) {
+                e.preventDefault();
+
+                const center = getCenter(e.touches[0], e.touches[1]);
+                const dx = center.x - lastCenter.x;
+                const dy = center.y - lastCenter.y;
+
+                stage.position({
+                    x: stage.x() + dx,
+                    y: stage.y() + dy
+                });
+
+                stage.batchDraw();
+                lastCenter = center;
+            }
+        }, { passive: false });
+
+        stage.getContent().addEventListener('touchend', (e) => {
+            if (e.touches.length < 2) {
+                isTwoFingerPanning = false;
+                lastCenter = null;
+            }
+        });
     </script>
+
 </body>
 
 </html>
