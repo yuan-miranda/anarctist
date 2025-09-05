@@ -229,7 +229,7 @@
 
         let zoomInterval = null;
         const zoomSpeed = 1.02;
-        const zoomDelay = 20;
+        const zoomDelay = 1000;
 
         function zoomStageAtCenter(scaleFactor) {
             const oldScale = stage.scaleX();
@@ -255,14 +255,20 @@
         }
 
         function startZoom(scaleFactor) {
-            if (zoomInterval) clearInterval(zoomInterval);
+            if (zoomInterval) {
+                clearInterval(zoomInterval);
+                console.log('start zoom');
+            }
             zoomInterval = setInterval(() => {
                 zoomStageAtCenter(scaleFactor);
             }, zoomDelay);
         }
 
         function stopZoom() {
-            if (zoomInterval) clearInterval(zoomInterval);
+            if (zoomInterval) {
+                clearInterval(zoomInterval);
+                console.log('stop zoom');
+            }
             zoomInterval = null;
         }
 
