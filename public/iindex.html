@@ -297,9 +297,12 @@
                 isTwoFingerPanning = true;
                 lastCenter = getCenter(e.touches[0], e.touches[1]);
 
-                // stop drawing if we were
+                // remove current drawing if second finger touches
+                if (isDrawing && currentLine) {
+                    currentLine.destroy();
+                    currentLine = null;
+                }
                 isDrawing = false;
-                currentLine = null;
             }
         }, { passive: false });
 
