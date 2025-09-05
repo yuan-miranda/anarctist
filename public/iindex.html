@@ -257,7 +257,6 @@
         function startZoom(scaleFactor) {
             if (zoomInterval) {
                 clearInterval(zoomInterval);
-                console.log('start zoom');
             }
             zoomInterval = setInterval(() => {
                 zoomStageAtCenter(scaleFactor);
@@ -267,7 +266,7 @@
         function stopZoom() {
             if (zoomInterval) {
                 clearInterval(zoomInterval);
-                console.log('stop zoom');
+                alert('zoom stopped');
             }
             zoomInterval = null;
         }
