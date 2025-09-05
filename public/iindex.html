@@ -271,28 +271,17 @@
             }
             zoomInterval = null;
         }
-
         // zoom in
         const zoomInBtn = document.getElementById('zoomIn');
-        zoomInBtn.addEventListener('mousedown', () => startZoom(zoomSpeed));
-        zoomInBtn.addEventListener('touchstart', () => startZoom(zoomSpeed));
-        zoomInBtn.addEventListener('mouseup', stopZoom);
-        zoomInBtn.addEventListener('mouseleave', stopZoom);
-        zoomInBtn.addEventListener('touchend', () => {
-            stopZoom();
-            alert('touch end zoom in');
-        });
+        zoomInBtn.addEventListener('pointerdown', () => startZoom(zoomSpeed));
+        zoomInBtn.addEventListener('pointerup', stopZoom);
+        zoomInBtn.addEventListener('pointerleave', stopZoom);
 
         // zoom out
         const zoomOutBtn = document.getElementById('zoomOut');
-        zoomOutBtn.addEventListener('mousedown', () => startZoom(1 / zoomSpeed));
-        zoomOutBtn.addEventListener('touchstart', () => startZoom(1 / zoomSpeed));
-        zoomOutBtn.addEventListener('mouseup', stopZoom);
-        zoomOutBtn.addEventListener('mouseleave', stopZoom);
-        zoomOutBtn.addEventListener('touchend', () => {
-            stopZoom();
-            alert('touch end zoom out');
-        });
+        zoomOutBtn.addEventListener('pointerdown', () => startZoom(1 / zoomSpeed));
+        zoomOutBtn.addEventListener('pointerup', stopZoom);
+        zoomOutBtn.addEventListener('pointerleave', stopZoom);
 
         // two-finger panning
         let isTwoFingerPanning = false;
