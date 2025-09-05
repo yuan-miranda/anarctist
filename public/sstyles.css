@@ -1,0 +1,169 @@
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+
+    -webkit-tap-highlight-color: transparent;
+    -webkit-touch-callout: none;
+}
+
+body {
+    font-family: Arial, Helvetica, sans-serif;
+    background: #f0f0f0;
+    user-select: none;
+}
+
+h1 {
+    position: fixed;
+    top: 10px;
+    left: 10px;
+    z-index: 1;
+    margin: 1rem;
+    color: #333;
+}
+
+#container {
+    cursor: none;
+}
+
+img {
+    pointer-events: none;
+}
+
+.link-actions {
+    position: fixed;
+    margin: 1rem;
+    z-index: 1;
+    bottom: 10px;
+    right: 10px;
+}
+
+.canvas-actions,
+.link-actions,
+.zoom-actions,
+.color-actions {
+    position: fixed;
+    margin: 1rem;
+    z-index: 1;
+}
+
+.zoom-actions {
+    bottom: 10px;
+    left: 10px;
+}
+
+.canvas-actions button,
+.zoom-actions button,
+.canvas-actions-minified button {
+    padding: 0.8rem 1rem;
+    background: #fff;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+}
+
+.kursor--5,
+.kursorChild--5 {
+    transition: none !important;
+}
+
+.kursor--5.kursor--down {
+    width: 10px !important;
+    height: 10px !important;
+}
+
+.canvas-actions,
+.link-actions,
+.zoom-actions,
+.color-actions {
+    position: fixed;
+    margin: 1rem;
+    z-index: 1;
+}
+
+.canvas-actions {
+    top: 10px;
+    right: 10px;
+}
+
+.link-actions {
+    bottom: 10px;
+    right: 10px;
+}
+
+.zoom-actions {
+    bottom: 10px;
+    left: 10px;
+}
+
+.color-actions {
+    top: 50%;
+    transform: translateY(-50%);
+    left: 10px;
+}
+
+.color-options {
+    display: grid;
+    grid-template-columns: repeat(2, auto);
+    gap: 0.4rem;
+    margin-top: 0.4rem;
+}
+
+.color-btn,
+#toggleCollapse,
+.color-btn,
+input[type="color"],
+#decreaseStrokeSize,
+#increaseStrokeSize,
+#strokeSize {
+    width: 32px;
+    height: 32px;
+    padding: 0;
+    border: 1px solid #ccc;
+    font-size: 1rem;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.canvas-actions button,
+.zoom-actions button,
+.canvas-actions-minified button {
+    padding: 0.8rem 1rem;
+    background: #fff;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    cursor: pointer;
+}
+
+.canvas-actions-minified {
+    display: none;
+}
+
+.color-btn.selected {
+    border: 2px solid #333;
+    box-shadow: 0 0 0 2px white;
+}
+
+button:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+.color-options.collapsed {
+    display: none;
+}
+
+@media (max-width: 50rem) {
+    h1 {
+        font-size: 1.2rem;
+    }
+
+    .canvas-actions>button {
+        display: none;
+    }
+
+    .canvas-actions-minified {
+        display: block;
+    }
+}
