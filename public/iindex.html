@@ -78,7 +78,7 @@
     <h1>Anarctist</h1>
     <div id="container"></div>
 
-    <div id="controls">
+    <div id="controls" style="display: none;">
         <input type="range" id="strokeSize" min="1" max="10" value="5">
         <span id="strokeLabel"></span>
     </div>
@@ -242,6 +242,62 @@
             stage.height(window.innerHeight);
             stage.batchDraw();
         });
+
+        let zoomInterval = null;
+        const zoomSpeed = 1.02;
+        const zoomDelay = 20;
+
+        function zoomStageAtCenter(scaleFactor) {
+            const oldScale = stage.scaleX();
+            const pointer = {
+                x: stage.width() / 2,
+                y: stage.height() / 2
+            };
+
+            const mousePointTo = {
+                x: (pointer.x - stage.x()) / oldScale,
+                y: (pointer.y - stage.y()) / oldScale
+            };
+
+            const newScale = oldScale * scaleFactor;
+
+            stage.scale({ x: newScale, y: newScale });
+            stage.position({
+                x: pointer.x - mousePointTo.x * newScale,
+                y: pointer.y - mousePointTo.y * newScale
+            });
+
+            stage.batchDraw();
+        }
+
+        function startZoom(scaleFactor) {
+            if (zoomInterval) clearInterval(zoomInterval);
+            zoomInterval = setInterval(() => {
+                zoomStageAtCenter(scaleFactor);
+            }, zoomDelay);
+        }
+
+        function stopZoom() {
+            if (zoomInterval) clearInterval(zoomInterval);
+            zoomInterval = null;
+        }
+
+        // zoom in
+        const zoomInBtn = document.getElementById('zoomIn');
+        zoomInBtn.addEventListener('mousedown', () => startZoom(zoomSpeed));
+        zoomInBtn.addEventListener('touchstart', () => startZoom(zoomSpeed));
+        zoomInBtn.addEventListener('mouseup', stopZoom);
+        zoomInBtn.addEventListener('mouseleave', stopZoom);
+        zoomInBtn.addEventListener('touchend', stopZoom);
+
+        // zoom out
+        const zoomOutBtn = document.getElementById('zoomOut');
+        zoomOutBtn.addEventListener('mousedown', () => startZoom(1 / zoomSpeed));
+        zoomOutBtn.addEventListener('touchstart', () => startZoom(1 / zoomSpeed));
+        zoomOutBtn.addEventListener('mouseup', stopZoom);
+        zoomOutBtn.addEventListener('mouseleave', stopZoom);
+        zoomOutBtn.addEventListener('touchend', stopZoom);
+
     </script>
 </body>
 
