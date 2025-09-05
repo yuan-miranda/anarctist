@@ -231,9 +231,6 @@
         const zoomSpeed = 1.02;
         const zoomDelay = 20;
 
-        const MIN_SCALE = 0.1;
-        const MAX_SCALE = 10;
-
         function zoomStageAtCenter(scaleFactor) {
             const oldScale = stage.scaleX();
             const pointer = {
@@ -246,10 +243,7 @@
                 y: (pointer.y - stage.y()) / oldScale
             };
 
-            let newScale = oldScale * scaleFactor;
-
-            // clamp the scale
-            newScale = Math.max(MIN_SCALE, Math.min(MAX_SCALE, newScale));
+            const newScale = oldScale * scaleFactor;
 
             stage.scale({ x: newScale, y: newScale });
             stage.position({
@@ -261,15 +255,17 @@
         }
 
         function startZoom(scaleFactor) {
-            if (zoomInterval) clearInterval(zoomInterval);
+            stopZoom();
             zoomInterval = setInterval(() => {
                 zoomStageAtCenter(scaleFactor);
             }, zoomDelay);
         }
 
         function stopZoom() {
-            if (zoomInterval) clearInterval(zoomInterval);
-            zoomInterval = null;
+            if (zoomInterval !== null) {
+                clearInterval(zoomInterval);
+                zoomInterval = null;
+            }
         }
 
         // zoom in
