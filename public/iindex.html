@@ -255,17 +255,15 @@
         }
 
         function startZoom(scaleFactor) {
-            stopZoom();
+            if (zoomInterval) clearInterval(zoomInterval);
             zoomInterval = setInterval(() => {
                 zoomStageAtCenter(scaleFactor);
             }, zoomDelay);
         }
 
         function stopZoom() {
-            if (zoomInterval !== null) {
-                clearInterval(zoomInterval);
-                zoomInterval = null;
-            }
+            if (zoomInterval) clearInterval(zoomInterval);
+            zoomInterval = null;
         }
 
         // zoom in
@@ -274,7 +272,10 @@
         zoomInBtn.addEventListener('touchstart', () => startZoom(zoomSpeed));
         zoomInBtn.addEventListener('mouseup', stopZoom);
         zoomInBtn.addEventListener('mouseleave', stopZoom);
-        zoomInBtn.addEventListener('touchend', stopZoom);
+        zoomInBtn.addEventListener('touchend', () => {
+            stopZoom();
+            alert('touch end zoom in');
+        });
 
         // zoom out
         const zoomOutBtn = document.getElementById('zoomOut');
@@ -282,7 +283,10 @@
         zoomOutBtn.addEventListener('touchstart', () => startZoom(1 / zoomSpeed));
         zoomOutBtn.addEventListener('mouseup', stopZoom);
         zoomOutBtn.addEventListener('mouseleave', stopZoom);
-        zoomOutBtn.addEventListener('touchend', stopZoom);
+        zoomOutBtn.addEventListener('touchend', () => {
+            stopZoom();
+            alert('touch end zoom out');
+        });
 
         // two-finger panning
         let isTwoFingerPanning = false;
