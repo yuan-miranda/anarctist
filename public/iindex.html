@@ -183,9 +183,9 @@
         stage.on('mousedown touchstart', (e) => {
             const pos = getPointerPos();
 
-            if (e.evt.touches && e.evt.touches.length > 2) return;
+            if (e.evt.touches && e.evt.touches.length > 1) return;
 
-            if (e.evt.button === 0 || e.evt.types === 'touchstart') {
+            if (e.evt.type === 'touchstart' || e.evt.button === 0) {
                 isDrawing = true;
                 currentLine = new Konva.Line({
                     stroke: 'black',
@@ -217,7 +217,7 @@
         });
 
         stage.on('mouseup touchend', (e) => {
-            if (e.evt.button === 0 || e.evt.type === 'touchend') endDrawing();
+            if (e.evt.type === 'touchend' || e.evt.button === 0) endDrawing();
             else if (e.evt.button === 2) stage.draggable(false);
         });
 
