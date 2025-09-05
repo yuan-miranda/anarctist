@@ -231,6 +231,9 @@
         const zoomSpeed = 1.02;
         const zoomDelay = 20;
 
+        const MIN_SCALE = 0.1;
+        const MAX_SCALE = 10;
+
         function zoomStageAtCenter(scaleFactor) {
             const oldScale = stage.scaleX();
             const pointer = {
@@ -243,7 +246,10 @@
                 y: (pointer.y - stage.y()) / oldScale
             };
 
-            const newScale = oldScale * scaleFactor;
+            let newScale = oldScale * scaleFactor;
+
+            // clamp the scale
+            newScale = Math.max(MIN_SCALE, Math.min(MAX_SCALE, newScale));
 
             stage.scale({ x: newScale, y: newScale });
             stage.position({
@@ -282,7 +288,7 @@
         zoomOutBtn.addEventListener('mouseleave', stopZoom);
         zoomOutBtn.addEventListener('touchend', stopZoom);
 
-        // ===== Two-finger panning for mobile =====
+        // two-finger panning
         let isTwoFingerPanning = false;
         let lastCenter = null;
 
