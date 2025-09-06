@@ -13,6 +13,7 @@ setZoomControls(stage);
 createMouseEvents(stage, layer, pageGroup, getStrokeSize, previewCircle);
 createTouchEvents(stage, layer, pageGroup, getStrokeSize, previewCircle);
 
+document.addEventListener('contextmenu', e => e.preventDefault());
 window.addEventListener('resize', () => {
     stage.width(window.innerWidth);
     stage.height(window.innerHeight);

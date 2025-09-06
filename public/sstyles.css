@@ -155,10 +155,6 @@ button:disabled {
 }
 
 @media (max-width: 50rem) {
-    h1 {
-        font-size: 1.2rem;
-    }
-
     .canvas-actions>button {
         display: none;
     }

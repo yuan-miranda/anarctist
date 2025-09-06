@@ -2,8 +2,6 @@ import { getPointerPos, createKonvaLine } from "../utils/drawingUtils.js";
 import { setDrawing, getDrawing, setCurrentLine, getCurrentLine, endDrawing } from "../utils/drawingState.js";
 
 export function createMouseEvents(stage, layer, pageGroup, getStrokeSize, previewCircle) {
-    stage.container().addEventListener('contextmenu', e => e.preventDefault());
-
     stage.on('mousedown', (e) => {
         const pos = getPointerPos(stage);
         if (!pos) return;
