@@ -48,7 +48,7 @@ export function setZoomControls(stage) {
 
     // ctrl + +
     window.addEventListener('keydown', (e) => {
-        if (e.ctrlKey && (e.key === '=' || e.key === '+')) {
+        if (e.ctrlKey && (e.key === '=')) {
             e.preventDefault();
             zoomStageAtCenter(stage, zoomSpeed);
         }
