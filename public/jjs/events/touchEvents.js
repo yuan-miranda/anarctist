@@ -1,5 +1,6 @@
 import { getPointerPos, createKonvaLine } from "../utils/drawingUtils.js";
 import { setDrawing, getDrawing, setCurrentLine, getCurrentLine, endDrawing } from "../utils/drawingState.js";
+import { saveStagePositionAndScale } from "../zoom.js";
 
 let isTwoFingerPanning = false;
 let lastCenter = null;
@@ -82,6 +83,7 @@ export function createTouchEvents(stage, drawLayer, pageGroup, getStrokeSize, pr
         if (e.touches.length < 2) {
             isTwoFingerPanning = false;
             lastCenter = null;
+            saveStagePositionAndScale(stage);
         }
     });
 }

@@ -2,6 +2,21 @@ let zoomInterval = null;
 const zoomSpeed = 1.02;
 const zoomDelay = 20;
 
+export function saveStagePositionAndScale(stage) {
+    localStorage.setItem('stageScale', stage.scaleX());
+    localStorage.setItem('stageX', stage.x());
+    localStorage.setItem('stageY', stage.y());
+}
+
+function loadStagePositionAndScale(stage) {
+    const scale = parseFloat(localStorage.getItem('stageScale')) || 1;
+    const x = parseFloat(localStorage.getItem('stageX')) || 0;
+    const y = parseFloat(localStorage.getItem('stageY')) || 0;
+
+    stage.scale({ x: scale, y: scale });
+    stage.position({ x, y });
+}
+
 function zoomStageAtCenter(stage, scaleFactor) {
     const oldScale = stage.scaleX();
     const pointer = {
@@ -23,6 +38,7 @@ function zoomStageAtCenter(stage, scaleFactor) {
     });
 
     stage.batchDraw();
+    saveStagePositionAndScale(stage);
 }
 
 function startZoom(stage, scaleFactor) {
@@ -40,6 +56,8 @@ function stopZoom() {
 export function setZoomControls(stage) {
     const zoomInBtn = document.getElementById('zoomIn');
     const zoomOutBtn = document.getElementById('zoomOut');
+
+    loadStagePositionAndScale(stage);
 
     // zoom in
     zoomInBtn.addEventListener('pointerdown', () => startZoom(stage, zoomSpeed));
@@ -66,4 +84,17 @@ export function setZoomControls(stage) {
             zoomStageAtCenter(stage, 1 / zoomSpeed);
         }
     });
+
+    // ctrl + 0 to reset zoom
+    window.addEventListener('keydown', (e) => {
+        if (e.ctrlKey && e.key === '0') {
+            e.preventDefault();
+            stage.scale({ x: 1, y: 1 });
+            stage.position({ x: 0, y: 0 });
+            stage.batchDraw();
+            saveStagePositionAndScale(stage);
+        }
+    });
+
+    window.addEventListener('blur', () => stopZoom());
 }
