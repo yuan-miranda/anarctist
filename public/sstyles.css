@@ -30,37 +30,6 @@ img {
     pointer-events: none;
 }
 
-.link-actions {
-    position: fixed;
-    margin: 1rem;
-    z-index: 1;
-    bottom: 10px;
-    right: 10px;
-}
-
-.canvas-actions,
-.link-actions,
-.zoom-actions,
-.color-actions {
-    position: fixed;
-    margin: 1rem;
-    z-index: 1;
-}
-
-.zoom-actions {
-    bottom: 10px;
-    left: 10px;
-}
-
-.canvas-actions button,
-.zoom-actions button,
-.canvas-actions-minified button {
-    padding: 0.8rem 1rem;
-    background: #fff;
-    border: 1px solid #ccc;
-    border-radius: 4px;
-}
-
 .kursor--5,
 .kursorChild--5 {
     transition: none !important;
