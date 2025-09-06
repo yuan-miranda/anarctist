@@ -1,3 +1,5 @@
+import { centerStage } from './utils/stageUtils.js';
+
 let zoomInterval = null;
 const zoomSpeed = 1.02;
 const zoomDelay = 20;
@@ -56,8 +58,14 @@ function stopZoom() {
 export function setZoomControls(stage) {
     const zoomInBtn = document.getElementById('zoomIn');
     const zoomOutBtn = document.getElementById('zoomOut');
+    const centerCanvasBtn = document.getElementById('centerCanvas');
+    const centerCanvasMinBtn = document.getElementById('centerCanvasMin');
 
     loadStagePositionAndScale(stage);
+
+    if (centerCanvasBtn) centerCanvasBtn.addEventListener('click', () => centerStage(stage));
+    if (centerCanvasMinBtn) centerCanvasMinBtn.addEventListener('click', () => centerStage(stage, true));
+
 
     // zoom in
     zoomInBtn.addEventListener('pointerdown', () => startZoom(stage, zoomSpeed));
