@@ -85,12 +85,12 @@ export function setZoomControls(stage) {
         }
     });
 
-    // ctrl + 0 to reset zoom
+    // ctrl + 0 to reset zoom but not position
     window.addEventListener('keydown', (e) => {
         if (e.ctrlKey && e.key === '0') {
             e.preventDefault();
             stage.scale({ x: 1, y: 1 });
-            stage.position({ x: 0, y: 0 });
+            // stage.position({ x: 0, y: 0 });
             stage.batchDraw();
             saveStagePositionAndScale(stage);
         }
