@@ -46,8 +46,24 @@ export function setZoomControls(stage) {
     zoomInBtn.addEventListener('pointerup', stopZoom);
     zoomInBtn.addEventListener('pointerleave', stopZoom);
 
+    // ctrl + +
+    window.addEventListener('keydown', (e) => {
+        if (e.ctrlKey && (e.key === '=' || e.key === '+')) {
+            e.preventDefault();
+            zoomStageAtCenter(stage, zoomSpeed);
+        }
+    });
+
     // zoom out
     zoomOutBtn.addEventListener('pointerdown', () => startZoom(stage, 1 / zoomSpeed));
     zoomOutBtn.addEventListener('pointerup', stopZoom);
     zoomOutBtn.addEventListener('pointerleave', stopZoom);
+
+    // ctrl + -
+    window.addEventListener('keydown', (e) => {
+        if (e.ctrlKey && e.key === '-') {
+            e.preventDefault();
+            zoomStageAtCenter(stage, 1 / zoomSpeed);
+        }
+    });
 }
