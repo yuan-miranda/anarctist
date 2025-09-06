@@ -9,4 +9,10 @@ const { getStrokeSize, previewCircle } = setStrokeSize(layer);
 setZoomControls(stage);
 
 createMouseEvents(stage, layer, pageGroup, getStrokeSize, previewCircle);
-createTouchEvents(stage);
+createTouchEvents(stage, layer, pageGroup, getStrokeSize, previewCircle);
+
+window.addEventListener('resize', () => {
+    stage.width(window.innerWidth);
+    stage.height(window.innerHeight);
+    stage.batchDraw();
+});

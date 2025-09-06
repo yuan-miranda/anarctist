@@ -18,24 +18,27 @@ const endDrawing = () => {
     currentLine = null;
 };
 
+function createKonvaLine(pos, color, strokeWidth) {
+    return new Konva.Line({
+        stroke: color,
+        strokeWidth: strokeWidth,
+        globalCompositeOperation: 'source-over',
+        points: [pos.x, pos.y, pos.x, pos.y],
+        lineCap: 'round',
+        lineJoin: 'round',
+    });
+}
+
 export function createMouseEvents(stage, layer, pageGroup, getStrokeSize, previewCircle) {
     stage.container().addEventListener('contextmenu', e => e.preventDefault());
 
-    stage.on('mousedown touchstart', (e) => {
+    stage.on('mousedown', (e) => {
         const pos = getPointerPos(stage);
+        if (!pos) return;
 
-        if (e.evt.touches && e.evt.touches.length > 1) return;
-
-        if (e.evt.type === 'touchstart' || e.evt.button === 0) {
+        if (e.evt.button === 0) {
             isDrawing = true;
-            currentLine = new Konva.Line({
-                stroke: 'black',
-                strokeWidth: getStrokeSize(),
-                globalCompositeOperation: 'source-over',
-                points: [pos.x, pos.y, pos.x, pos.y],
-                lineCap: 'round',
-                lineJoin: 'round',
-            });
+            currentLine = createKonvaLine(pos, 'black', getStrokeSize());
             pageGroup.add(currentLine);
         } else if (e.evt.button === 2) {
             stage.draggable(true);
@@ -43,7 +46,7 @@ export function createMouseEvents(stage, layer, pageGroup, getStrokeSize, previe
         }
     });
 
-    stage.on('mousemove touchmove', () => {
+    stage.on('mousemove', () => {
         const pos = getPointerPos(stage);
         if (!pos) return;
 
@@ -57,22 +60,48 @@ export function createMouseEvents(stage, layer, pageGroup, getStrokeSize, previe
         layer.batchDraw();
     });
 
-    stage.on('mouseup touchend', (e) => {
-        if (e.evt.type === 'touchend' || e.evt.button === 0) endDrawing();
+    stage.on('mouseup', (e) => {
+        if (e.evt.button === 0) endDrawing();
         else if (e.evt.button === 2) stage.draggable(false);
     });
 
     stage.on('mouseleave', () => { previewCircle.visible(false); endDrawing(); });
     window.addEventListener('blur', endDrawing);
-
-    window.addEventListener('resize', () => {
-        stage.width(window.innerWidth);
-        stage.height(window.innerHeight);
-        stage.batchDraw();
-    });
 }
 
-export function createTouchEvents(stage) {
+export function createTouchEvents(stage, layer, pageGroup, getStrokeSize, previewCircle) {
+    // single-finger drawing
+    stage.on('touchstart', (e) => {
+        if (e.evt.touches.length > 1) return;
+
+        const pos = getPointerPos(stage);
+        if (!pos) return;
+
+        isDrawing = true;
+        currentLine = createKonvaLine(pos, 'black', getStrokeSize());
+        pageGroup.add(currentLine);
+    });
+
+    stage.on('touchmove', () => {
+        const pos = getPointerPos(stage);
+        if (!pos) return;
+
+        previewCircle.position(pos);
+        previewCircle.visible(true);
+
+        if (isDrawing && currentLine) {
+            currentLine.points(currentLine.points().concat([pos.x, pos.y]));
+        }
+
+        layer.batchDraw();
+    });
+
+    stage.on('touchend', (e) => {
+        if (e.evt.type === 'touchend') endDrawing();
+    });
+
+    stage.on('touchcancel', endDrawing);
+
     // two-finger panning
     stage.getContent().addEventListener('touchstart', (e) => {
         if (e.touches.length === 2) {
