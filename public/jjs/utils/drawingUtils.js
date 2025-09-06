@@ -1,7 +1,11 @@
 export const getPointerPos = (stage) => {
     const transform = stage.getAbsoluteTransform().copy();
     transform.invert();
-    return transform.point(stage.getPointerPosition());
+    const pos = transform.point(stage.getPointerPosition());
+    return {
+        x: Math.round(pos.x),
+        y: Math.round(pos.y)
+    }
 };
 
 export function createKonvaLine(pos, color, strokeWidth) {

@@ -1,11 +1,11 @@
 let isDrawing = false;
 let currentLine = null;
 
-export function setDrawing(state) {
+export function setDrawingState(state) {
     isDrawing = state;
 }
 
-export function getDrawing() {
+export function getDrawingState() {
     return isDrawing;
 }
 

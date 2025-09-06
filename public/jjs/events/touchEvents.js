@@ -1,5 +1,5 @@
 import { getPointerPos, createKonvaLine } from "../utils/drawingUtils.js";
-import { setDrawing, getDrawing, setCurrentLine, getCurrentLine, endDrawing } from "../utils/drawingState.js";
+import { setDrawingState, getDrawingState, setCurrentLine, getCurrentLine, endDrawing } from "../utils/drawingState.js";
 import { saveStagePositionAndScale } from "../zoom.js";
 
 let isTwoFingerPanning = false;
@@ -20,7 +20,7 @@ export function createTouchEvents(stage, drawLayer, pageGroup, getStrokeSize, pr
         const pos = getPointerPos(stage);
         if (!pos) return;
 
-        setDrawing(true);
+        setDrawingState(true);
         const line = createKonvaLine(pos, 'black', getStrokeSize());
         setCurrentLine(line);
         pageGroup.add(line);
@@ -33,7 +33,7 @@ export function createTouchEvents(stage, drawLayer, pageGroup, getStrokeSize, pr
         previewCircle.position(pos);
         previewCircle.visible(true);
 
-        if (getDrawing() && getCurrentLine()) {
+        if (getDrawingState() && getCurrentLine()) {
             getCurrentLine().points(getCurrentLine().points().concat([pos.x, pos.y]));
         }
 
@@ -53,11 +53,11 @@ export function createTouchEvents(stage, drawLayer, pageGroup, getStrokeSize, pr
             lastCenter = getCenter(e.touches[0], e.touches[1]);
 
             // remove current drawing if second finger touches
-            if (getDrawing() && getCurrentLine()) {
+            if (getDrawingState() && getCurrentLine()) {
                 getCurrentLine().destroy();
                 setCurrentLine(null);
             }
-            setDrawing(false);
+            setDrawingState(false);
         }
     }, { passive: false });
 
