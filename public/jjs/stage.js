@@ -10,8 +10,8 @@ export function createStage() {
         height: window.innerHeight
     });
 
-    const layer = new Konva.Layer();
-    stage.add(layer);
+    const drawLayer = new Konva.Layer();
+    stage.add(drawLayer);
 
     const pageGroup = new Konva.Group({
         clip: { x: 0, y: 0, width: PAGE_WIDTH, height: PAGE_HEIGHT },
@@ -28,7 +28,7 @@ export function createStage() {
     });
 
     pageGroup.add(page);
-    layer.add(pageGroup);
+    drawLayer.add(pageGroup);
 
-    return { stage, layer, pageGroup };
+    return { stage, drawLayer, pageGroup };
 }

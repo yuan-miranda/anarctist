@@ -11,7 +11,7 @@ function getCenter(t1, t2) {
     };
 }
 
-export function createTouchEvents(stage, layer, pageGroup, getStrokeSize, previewCircle) {
+export function createTouchEvents(stage, drawLayer, pageGroup, getStrokeSize, previewCircle) {
     // single-finger drawing
     stage.on('touchstart', (e) => {
         if (e.evt.touches.length > 1) return;
@@ -36,7 +36,7 @@ export function createTouchEvents(stage, layer, pageGroup, getStrokeSize, previe
             getCurrentLine().points(getCurrentLine().points().concat([pos.x, pos.y]));
         }
 
-        layer.batchDraw();
+        drawLayer.batchDraw();
     });
 
     stage.on('touchend', (e) => {

@@ -6,28 +6,27 @@ function updateStrokeLabel(size) {
     strokeLabel.textContent = `Stroke: ${size}px`;
 }
 
-function createStrokePreviewCircle(layer, size) {
+function createStrokePreviewCircle(drawLayer, size) {
     const previewCircle = new Konva.Circle({
         radius: size / 2,
         fill: 'rgba(0,0,0,0.06)',
         listening: false,
         visible: false
     });
-    layer.add(previewCircle);
+    drawLayer.add(previewCircle);
     previewCircle.moveToTop();
-
     return previewCircle;
 }
 
-export function setStrokeSize(layer) {
-    const previewCircle = createStrokePreviewCircle(layer, strokeSize);
+export function setStrokeSize(drawLayer) {
+    const previewCircle = createStrokePreviewCircle(drawLayer, strokeSize);
     updateStrokeLabel(strokeSize);
 
     strokeInput.addEventListener("input", () => {
         strokeSize = parseInt(strokeInput.value, 10);
         updateStrokeLabel(strokeSize);
         previewCircle.radius(strokeSize / 2);
-        layer.batchDraw();
+        drawLayer.batchDraw();
     });
 
     return {

@@ -1,7 +1,7 @@
 import { getPointerPos, createKonvaLine } from "../utils/drawingUtils.js";
 import { setDrawing, getDrawing, setCurrentLine, getCurrentLine, endDrawing } from "../utils/drawingState.js";
 
-export function createMouseEvents(stage, layer, pageGroup, getStrokeSize, previewCircle) {
+export function createMouseEvents(stage, drawLayer, pageGroup, getStrokeSize, previewCircle) {
     stage.on('mousedown', (e) => {
         const pos = getPointerPos(stage);
         if (!pos) return;
@@ -28,7 +28,7 @@ export function createMouseEvents(stage, layer, pageGroup, getStrokeSize, previe
             getCurrentLine().points(getCurrentLine().points().concat([pos.x, pos.y]));
         }
 
-        layer.batchDraw();
+        drawLayer.batchDraw();
     });
 
     stage.on('mouseup', (e) => {

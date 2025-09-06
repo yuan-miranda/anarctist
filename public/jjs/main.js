@@ -6,12 +6,12 @@ import { createMouseEvents } from "./events/mouseEvents.js";
 import { createTouchEvents } from "./events/touchEvents.js";
 
 createKursor();
-const { stage, layer, pageGroup } = createStage();
-const { getStrokeSize, previewCircle } = setStrokeSize(layer);
+const { stage, drawLayer, pageGroup } = createStage();
+const { getStrokeSize, previewCircle } = setStrokeSize(drawLayer);
 setZoomControls(stage);
 
-createMouseEvents(stage, layer, pageGroup, getStrokeSize, previewCircle);
-createTouchEvents(stage, layer, pageGroup, getStrokeSize, previewCircle);
+createMouseEvents(stage, drawLayer, pageGroup, getStrokeSize, previewCircle);
+createTouchEvents(stage, drawLayer, pageGroup, getStrokeSize, previewCircle);
 
 document.addEventListener('contextmenu', e => e.preventDefault());
 window.addEventListener('resize', () => {
