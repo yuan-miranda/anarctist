@@ -1,3 +1,5 @@
+import { centerStage, centerStageOffset } from './utils/stageUtils.js';
+
 export const PAGE_WIDTH = 524288;
 export const PAGE_HEIGHT = 524288;
 
@@ -29,6 +31,9 @@ export function createStage() {
 
     pageGroup.add(page);
     drawLayer.add(pageGroup);
+
+    centerStageOffset(stage, PAGE_WIDTH, PAGE_HEIGHT);
+    centerStage(stage);
 
     return { stage, drawLayer, pageGroup };
 }
