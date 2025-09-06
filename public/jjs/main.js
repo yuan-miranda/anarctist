@@ -2,7 +2,9 @@ import { createKursor } from "./utils/cursorUtils.js";
 import { createStage } from "./stage.js";
 import { setStrokeSize } from "./stroke.js";
 import { setZoomControls } from "./zoom.js";
-import { createMouseEvents, createTouchEvents } from "./drawing.js";
+import { createMouseEvents } from "./events/mouseEvents.js";
+import { createTouchEvents } from "./events/touchEvents.js";
+
 createKursor();
 const { stage, layer, pageGroup } = createStage();
 const { getStrokeSize, previewCircle } = setStrokeSize(layer);
