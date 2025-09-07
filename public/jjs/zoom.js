@@ -5,6 +5,11 @@ let zoomInterval = null;
 const zoomSpeed = 1.02;
 const zoomDelay = 20;
 
+const zoomInBtn = document.getElementById('zoomIn');
+const zoomOutBtn = document.getElementById('zoomOut');
+const resetZoomBtn = document.getElementById('resetZoom');
+const centerCanvasBtn = document.getElementById('centerCanvas');
+
 export function saveStagePositionAndScale(stage) {
     localStorage.setItem('stageScale', stage.scaleX());
     localStorage.setItem('stageX', stage.x());
@@ -56,20 +61,25 @@ function stopZoom() {
     zoomInterval = null;
 }
 
+function showResetZoomButton() {
+    resetZoomBtn.style.display = 'inline-block';
+    centerCanvasBtn.style.display = 'none';
+}
+
+function showCenterCanvasButton() {
+    resetZoomBtn.style.display = 'none';
+    centerCanvasBtn.style.display = 'inline-block';
+}
+
 export function setZoomControls(stage) {
-    const zoomInBtn = document.getElementById('zoomIn');
-    const zoomOutBtn = document.getElementById('zoomOut');
-    const centerCanvasBtn = document.getElementById('centerCanvas');
-    const centerCanvasMinBtn = document.getElementById('centerCanvasMin');
-
     loadStagePositionAndScale(stage);
-
-    if (centerCanvasBtn) centerCanvasBtn.addEventListener('click', () => centerStage(stage));
-    if (centerCanvasMinBtn) centerCanvasMinBtn.addEventListener('click', () => centerStage(stage, true));
-
+    showResetZoomButton();
 
     // zoom in
-    zoomInBtn.addEventListener('pointerdown', () => startZoom(stage, zoomSpeed));
+    zoomInBtn.addEventListener('pointerdown', () => {
+        startZoom(stage, zoomSpeed);
+        showResetZoomButton();
+    });
     zoomInBtn.addEventListener('pointerup', stopZoom);
     zoomInBtn.addEventListener('pointerleave', stopZoom);
 
@@ -78,11 +88,15 @@ export function setZoomControls(stage) {
         if (e.ctrlKey && (e.key === '=')) {
             e.preventDefault();
             zoomStageAtCenter(stage, zoomSpeed);
+            showResetZoomButton();
         }
     });
 
     // zoom out
-    zoomOutBtn.addEventListener('pointerdown', () => startZoom(stage, 1 / zoomSpeed));
+    zoomOutBtn.addEventListener('pointerdown', () => {
+        startZoom(stage, 1 / zoomSpeed);
+        showResetZoomButton();
+    });
     zoomOutBtn.addEventListener('pointerup', stopZoom);
     zoomOutBtn.addEventListener('pointerleave', stopZoom);
 
@@ -91,6 +105,7 @@ export function setZoomControls(stage) {
         if (e.ctrlKey && e.key === '-') {
             e.preventDefault();
             zoomStageAtCenter(stage, 1 / zoomSpeed);
+            showResetZoomButton();
         }
     });
 
@@ -98,11 +113,19 @@ export function setZoomControls(stage) {
     window.addEventListener('keydown', (e) => {
         if (e.ctrlKey && e.key === '0') {
             e.preventDefault();
-            stage.scale({ x: 1, y: 1 });
-            // stage.position({ x: 0, y: 0 });
-            stage.batchDraw();
-            saveStagePositionAndScale(stage);
+            zoomStageAtCenter(stage, 1 / stage.scaleX());
+            showCenterCanvasButton();
         }
+    });
+
+    resetZoomBtn.addEventListener('click', () => {
+        zoomStageAtCenter(stage, 1 / stage.scaleX());
+        showCenterCanvasButton();
+    });
+
+    centerCanvasBtn.addEventListener('click', () => {
+        centerStage(stage);
+        showCenterCanvasButton();
     });
 
     window.addEventListener('blur', () => stopZoom());
