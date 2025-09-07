@@ -3,7 +3,7 @@ import { centerStage, centerStageOffset } from './utils/stageUtils.js';
 export const PAGE_WIDTH = 524288;
 export const PAGE_HEIGHT = 524288;
 
-Konva.pixelRatio = 1;
+// Konva.pixelRatio = 1;
 
 export function createStage() {
     const stage = new Konva.Stage({

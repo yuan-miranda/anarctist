@@ -1,9 +1,5 @@
-const strokeInput = document.getElementById("strokeSize");
-const strokeLabel = document.getElementById("strokeLabel");
-let strokeSize = parseInt(strokeInput.value, 10);
-
 function updateStrokeLabel(size) {
-    strokeLabel.textContent = `Stroke: ${size}px`;
+    document.getElementById("strokeSize").textContent = size;
 }
 
 function createStrokePreviewCircle(drawLayer, size) {
@@ -18,15 +14,29 @@ function createStrokePreviewCircle(drawLayer, size) {
     return previewCircle;
 }
 
-export function setStrokeSize(drawLayer) {
-    const previewCircle = createStrokePreviewCircle(drawLayer, strokeSize);
-    updateStrokeLabel(strokeSize);
+export function setStrokeControls(drawLayer) {
+    const strokeSizeSpan = document.getElementById("strokeSize");
+    let strokeSize = parseInt(strokeSizeSpan.textContent, 10) || 1;
 
-    strokeInput.addEventListener("input", () => {
-        strokeSize = parseInt(strokeInput.value, 10);
-        updateStrokeLabel(strokeSize);
-        previewCircle.radius(strokeSize / 2);
-        drawLayer.batchDraw();
+    const previewCircle = createStrokePreviewCircle(drawLayer, strokeSize);
+
+    const decreaseStrokeSizeBtn = document.getElementById("decreaseStrokeSize");
+    const increaseStrokeSizeBtn = document.getElementById("increaseStrokeSize");
+
+    decreaseStrokeSizeBtn.addEventListener("click", () => {
+        if (strokeSize > 1) {
+            strokeSize--;
+            updateStrokeLabel(strokeSize);
+            previewCircle.radius(strokeSize / 2);
+        }
+    });
+
+    increaseStrokeSizeBtn.addEventListener("click", () => {
+        if (strokeSize < 10) {
+            strokeSize++;
+            updateStrokeLabel(strokeSize);
+            previewCircle.radius(strokeSize / 2);
+        }
     });
 
     return {

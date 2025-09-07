@@ -1,6 +1,6 @@
 import { createKursor } from "./utils/cursorUtils.js";
 import { createStage } from "./stage.js";
-import { setStrokeSize } from "./stroke.js";
+import { setStrokeControls } from "./stroke.js";
 import { setZoomControls } from "./zoom.js";
 import { resetIdleTimer } from "./utils/timer.js";
 import { createMouseEvents } from "./events/mouseEvents.js";
@@ -10,7 +10,7 @@ import { loadStrokesFromLocalStorage } from "./utils/drawingUtils.js";
 
 createKursor();
 const { stage, drawLayer, pageGroup } = createStage();
-const { getStrokeSize, previewCircle } = setStrokeSize(drawLayer);
+const { getStrokeSize, previewCircle } = setStrokeControls(drawLayer);
 
 loadStrokesFromLocalStorage(pageGroup, drawLayer);
 
