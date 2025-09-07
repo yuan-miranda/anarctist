@@ -7,8 +7,6 @@ export function createMouseEvents(stage, drawLayer, pageGroup, getStrokeSize, pr
         const pos = getPointerPos(stage);
         if (!pos) return;
 
-        console.log(pos);
-
         if (e.evt.button === 0) {
             setDrawingState(true);
             const line = createKonvaLine(pos, 'black', getStrokeSize());
@@ -29,7 +27,6 @@ export function createMouseEvents(stage, drawLayer, pageGroup, getStrokeSize, pr
         previewCircle.visible(true);
 
         if (getDrawingState() && getCurrentLine()) {
-            console.log(pos);
             getCurrentLine().points(getCurrentLine().points().concat([pos.x, pos.y]));
         }
 

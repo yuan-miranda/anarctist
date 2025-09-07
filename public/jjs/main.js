@@ -6,11 +6,15 @@ import { resetIdleTimer } from "./utils/timer.js";
 import { createMouseEvents } from "./events/mouseEvents.js";
 import { createTouchEvents } from "./events/touchEvents.js";
 
+import { loadStrokesFromLocalStorage } from "./utils/drawingUtils.js";
+
 createKursor();
 const { stage, drawLayer, pageGroup } = createStage();
 const { getStrokeSize, previewCircle } = setStrokeSize(drawLayer);
-setZoomControls(stage);
 
+loadStrokesFromLocalStorage(pageGroup, drawLayer);
+
+setZoomControls(stage);
 createMouseEvents(stage, drawLayer, pageGroup, getStrokeSize, previewCircle);
 createTouchEvents(stage, drawLayer, pageGroup, getStrokeSize, previewCircle);
 
