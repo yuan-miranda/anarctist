@@ -73,7 +73,8 @@ function showCenterCanvasButton() {
 
 export function setZoomControls(stage) {
     loadStagePositionAndScale(stage);
-    showResetZoomButton();
+    if (stage.scaleX() !== 1) showResetZoomButton();
+    else showCenterCanvasButton();
 
     // zoom in
     zoomInBtn.addEventListener('pointerdown', () => {
@@ -83,7 +84,7 @@ export function setZoomControls(stage) {
     zoomInBtn.addEventListener('pointerup', stopZoom);
     zoomInBtn.addEventListener('pointerleave', stopZoom);
 
-    // ctrl + +
+    // ctrl + + (zoom in)
     window.addEventListener('keydown', (e) => {
         if (e.ctrlKey && (e.key === '=')) {
             e.preventDefault();
@@ -100,7 +101,7 @@ export function setZoomControls(stage) {
     zoomOutBtn.addEventListener('pointerup', stopZoom);
     zoomOutBtn.addEventListener('pointerleave', stopZoom);
 
-    // ctrl + -
+    // ctrl + - (zoom out)
     window.addEventListener('keydown', (e) => {
         if (e.ctrlKey && e.key === '-') {
             e.preventDefault();
@@ -109,7 +110,7 @@ export function setZoomControls(stage) {
         }
     });
 
-    // ctrl + 0 to reset zoom but not position
+    // ctrl + 0 (reset zoom)
     window.addEventListener('keydown', (e) => {
         if (e.ctrlKey && e.key === '0') {
             e.preventDefault();
@@ -118,11 +119,13 @@ export function setZoomControls(stage) {
         }
     });
 
+    // reset zoom
     resetZoomBtn.addEventListener('click', () => {
         zoomStageAtCenter(stage, 1 / stage.scaleX());
         showCenterCanvasButton();
     });
 
+    // center canvas
     centerCanvasBtn.addEventListener('click', () => {
         centerStage(stage);
         showCenterCanvasButton();
