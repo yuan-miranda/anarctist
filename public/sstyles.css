@@ -82,6 +82,7 @@ input[type="color"],
     height: 32px;
     padding: 0;
     border: 1px solid #ccc;
+    background-color: #fff;
     font-size: 1rem;
 
     display: flex;
@@ -99,7 +100,6 @@ input[type="color"],
 
 .color-btn.selected {
     border: 2px solid #333;
-    box-shadow: 0 0 0 2px white;
 }
 
 button:disabled {
