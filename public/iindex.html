@@ -15,16 +15,12 @@
 
     <div class="canvas-actions">
         <button id="centerCanvas" title="Center Canvas">Center Canvas</button>
-        <button id="saveCanvas" title="Save Canvas">Save Canvas</button>
 
         <!-- minified version -->
         <div class="canvas-actions-minified">
             <button id="centerCanvasMin" title="Center Canvas">
                 <img src="media/icon/centerCanvas.svg" alt="Center Canvas" width="24" height="24">
 
-            </button>
-            <button id="saveCanvasMin" title="Save Canvas">
-                <img src="media/icon/saveCanvas.svg" alt="Save Canvas" width="24" height="24">
             </button>
         </div>
     </div>
@@ -42,6 +38,12 @@
         <button id="zoomOut" title="Zoom Out">
             <img src="media/icon/zoomOut.svg" alt="Zoom Out" width="24" height="24">
         </button>
+        <button id="resetZoom" title="Reset Zoom">
+            <img src="media/icon/resetZoom.svg" alt="Reset Zoom" width="24" height="24">
+        </button>
+        <button id="centerZoom" title="Center Zoom">
+            <img src="media/icon/centerCanvas.svg" alt="Center Canvas" width="24" height="24">
+        </button>
     </div>
 
     <div class="color-actions">
@@ -57,7 +59,7 @@
             <button class="color-btn" style="background: #000000;" data-color="#000000" title="Black"
                 id="colorBtnDefault"></button>
             <button class="color-btn" id="eraserStroke" style="background: #ffffff;" data-color="#ffffff"
-                title="Eraser (White)">20</button>
+                title="Eraser (White)"></button>
 
             <button class="color-btn" style="background: #ff0000;" data-color="#ff0000" title="Red"></button>
             <button class="color-btn" style="background: #ff7f00;" data-color="#ff7f00" title="Orange"></button>
@@ -72,7 +74,7 @@
             <button id="decreaseStrokeSize" title="Decrease Stroke Width">-</button>
             <button id="increaseStrokeSize" title="Increase Stroke Width">+</button>
             <span id="strokeSize" title="Current Stroke Size"
-                style="display: inline-flex; align-items: center; justify-content: center;">2</span>
+                style="display: inline-flex; align-items: center; justify-content: center;"></span>
         </div>
     </div>
 

@@ -40,18 +40,12 @@ img {
     height: 10px !important;
 }
 
-.canvas-actions,
 .link-actions,
 .zoom-actions,
 .color-actions {
     position: fixed;
     margin: 1rem;
     z-index: 1;
-}
-
-.canvas-actions {
-    top: 10px;
-    right: 10px;
 }
 
 .link-actions {
@@ -95,18 +89,12 @@ input[type="color"],
     justify-content: center;
 }
 
-.canvas-actions button,
-.zoom-actions button,
-.canvas-actions-minified button {
+.zoom-actions button {
     padding: 0.8rem 1rem;
     background: #fff;
     border: 1px solid #ccc;
     border-radius: 4px;
     cursor: pointer;
-}
-
-.canvas-actions-minified {
-    display: none;
 }
 
 .color-btn.selected {
@@ -121,14 +109,4 @@ button:disabled {
 
 .color-options.collapsed {
     display: none;
-}
-
-@media (max-width: 50rem) {
-    .canvas-actions>button {
-        display: none;
-    }
-
-    .canvas-actions-minified {
-        display: block;
-    }
 }

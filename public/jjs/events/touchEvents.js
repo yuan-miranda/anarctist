@@ -1,4 +1,5 @@
-import { getPointerPos, createKonvaLine } from "../utils/drawingUtils.js";
+import { getPointerPos } from "../utils/drawingUtils.js";
+import { createKonvaLine } from "../stroke.js";
 import { setDrawingState, getDrawingState, setCurrentLine, getCurrentLine, endDrawing } from "../utils/drawingState.js";
 import { saveStagePositionAndScale } from "../zoom.js";
 
@@ -12,7 +13,7 @@ function getCenter(t1, t2) {
     };
 }
 
-export function createTouchEvents(stage, drawLayer, pageGroup, getStrokeSize, previewCircle) {
+export function createTouchEvents(stage, drawLayer, pageGroup, previewCircle) {
     // single-finger drawing
     stage.on('touchstart', (e) => {
         if (e.evt.touches.length > 1) return;
@@ -21,7 +22,7 @@ export function createTouchEvents(stage, drawLayer, pageGroup, getStrokeSize, pr
         if (!pos) return;
 
         setDrawingState(true);
-        const line = createKonvaLine(pos, 'black', getStrokeSize());
+        const line = createKonvaLine(pos);
         setCurrentLine(line);
         pageGroup.add(line);
     });

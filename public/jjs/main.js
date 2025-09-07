@@ -10,13 +10,13 @@ import { loadStrokesFromLocalStorage } from "./utils/drawingUtils.js";
 
 createKursor();
 const { stage, drawLayer, pageGroup } = createStage();
-const { getStrokeSize, previewCircle } = setStrokeControls(drawLayer);
+const { previewCircle } = setStrokeControls(drawLayer);
 
 loadStrokesFromLocalStorage(pageGroup, drawLayer);
 
 setZoomControls(stage);
-createMouseEvents(stage, drawLayer, pageGroup, getStrokeSize, previewCircle);
-createTouchEvents(stage, drawLayer, pageGroup, getStrokeSize, previewCircle);
+createMouseEvents(stage, drawLayer, pageGroup, previewCircle);
+createTouchEvents(stage, drawLayer, pageGroup, previewCircle);
 
 // idle timer
 resetIdleTimer();

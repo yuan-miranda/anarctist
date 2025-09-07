@@ -27,17 +27,6 @@ export function getPointerPos(stage, round = true) {
     }
 }
 
-export function createKonvaLine(pos, color, strokeWidth) {
-    return new Konva.Line({
-        stroke: color,
-        strokeWidth: strokeWidth,
-        globalCompositeOperation: 'source-over',
-        points: [pos.x, pos.y, pos.x, pos.y],
-        lineCap: 'round',
-        lineJoin: 'round',
-    });
-}
-
 export function saveStrokesToLocalStorage(pageGroup) {
     if (!pageGroup) return;
     const strokes = [];

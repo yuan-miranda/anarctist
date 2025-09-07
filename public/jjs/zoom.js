@@ -1,3 +1,4 @@
+// public/jjs/zoom.js
 import { centerStage } from './utils/stageUtils.js';
 
 let zoomInterval = null;

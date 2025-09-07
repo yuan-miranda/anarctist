@@ -1,15 +1,16 @@
-import { getPointerPos, createKonvaLine } from "../utils/drawingUtils.js";
+import { getPointerPos } from "../utils/drawingUtils.js";
+import { createKonvaLine } from "../stroke.js";
 import { setDrawingState, getDrawingState, setCurrentLine, getCurrentLine, endDrawing } from "../utils/drawingState.js";
 import { saveStagePositionAndScale } from "../zoom.js";
 
-export function createMouseEvents(stage, drawLayer, pageGroup, getStrokeSize, previewCircle) {
+export function createMouseEvents(stage, drawLayer, pageGroup, previewCircle) {
     stage.on('mousedown', (e) => {
         const pos = getPointerPos(stage);
         if (!pos) return;
 
         if (e.evt.button === 0) {
             setDrawingState(true);
-            const line = createKonvaLine(pos, 'black', getStrokeSize());
+            const line = createKonvaLine(pos);
             setCurrentLine(line);
             pageGroup.add(line);
         } else if (e.evt.button === 2) {
