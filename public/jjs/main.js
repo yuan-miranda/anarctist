@@ -1,4 +1,3 @@
-import { createKursor } from "./utils/cursorUtils.js";
 import { createStage } from "./stage.js";
 import { setStrokeControls } from "./stroke.js";
 import { setZoomControls } from "./zoom.js";
@@ -8,7 +7,6 @@ import { createTouchEvents } from "./events/touchEvents.js";
 
 import { loadStrokesFromLocalStorage } from "./utils/drawingUtils.js";
 
-createKursor();
 const { stage, drawLayer, pageGroup } = createStage();
 const { previewCircle } = setStrokeControls(drawLayer);
 

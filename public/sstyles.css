@@ -22,10 +22,6 @@ h1 {
     color: #333;
 }
 
-#container {
-    cursor: none;
-}
-
 img {
     pointer-events: none;
 }
@@ -67,17 +63,16 @@ img {
 .color-options {
     display: grid;
     grid-template-columns: repeat(2, auto);
-    gap: 0.4rem;
-    margin-top: 0.4rem;
+    gap: 0.1rem;
+    margin-top: 0.1rem;
 }
 
-.color-btn,
-#toggleCollapse,
-.color-btn,
-input[type="color"],
-#decreaseStrokeSize,
-#increaseStrokeSize,
-#strokeSize {
+.color-actions .color-btn,
+.color-actions #toggleCollapse,
+.color-actions input[type="color"],
+.color-actions #decreaseStrokeSize,
+.color-actions #increaseStrokeSize,
+.color-actions #strokeSize {
     width: 32px;
     height: 32px;
     padding: 0;
@@ -88,6 +83,7 @@ input[type="color"],
     display: flex;
     align-items: center;
     justify-content: center;
+    cursor: pointer;
 }
 
 .zoom-actions button {
@@ -109,4 +105,23 @@ button:disabled {
 
 .color-options.collapsed {
     display: none;
+}
+
+@media (max-width: 50rem) {
+
+    .color-actions .color-btn,
+    .color-actions #toggleCollapse,
+    .color-actions input[type="color"],
+    .color-actions #decreaseStrokeSize,
+    .color-actions #increaseStrokeSize,
+    .color-actions #strokeSize {
+        width: 24px;
+        height: 24px;
+        font-size: 0.8rem;
+    }
+
+    .color-actions img {
+        width: 24px;
+        height: 24px;
+    }
 }
