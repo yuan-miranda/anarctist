@@ -1,20 +1,15 @@
-export function compressPath(points) {
+export function compressPath(pointsArr) {
     const pairs = [];
-    for (let i = 0; i < points.length; i += 2) {
-        pairs.push(`${points[i]},${points[i + 1]}`);
+    for (let i = 0; i < pointsArr.length; i += 2) {
+        pairs.push(`${pointsArr[i]},${pointsArr[i + 1]}`);
     }
-    return pairs.join(' ');
+    return pairs.join(';');
 }
 
-export function decompressPath(pointsStr) {
-    if (!pointsStr) return [];
-    const pairs = pointsStr.split(' ');
-    const points = [];
-    pairs.forEach(pair => {
-        const [x, y] = pair.split(',').map(Number);
-        points.push(x, y);
-    });
-    return points;
+export function decompressPath(pathStr) {
+    return pathStr
+        .split(';')
+        .flatMap(pair => pair.split(',').map(Number));
 }
 
 export function getPointerPos(stage, round = false) {
