@@ -17,7 +17,7 @@ export function decompressPath(pointsStr) {
     return points;
 }
 
-export function getPointerPos(stage, round = true) {
+export function getPointerPos(stage, round = false) {
     const transform = stage.getAbsoluteTransform().copy();
     transform.invert();
     const pos = transform.point(stage.getPointerPosition());
