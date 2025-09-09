@@ -91,17 +91,3 @@ export async function loadStrokesFromDB(pageGroup, drawLayer, { useCache = true,
         return useCache ? startAt : 0;
     }
 }
-
-export function pushStrokeToLocalStorage(line) {
-    if (line.className !== 'Line') return;
-    const savedStrokes = JSON.parse(localStorage.getItem('strokes') || '[]');
-    savedStrokes.push({
-        points: compressPoints(line.points()),
-        stroke: line.stroke(),
-        strokeWidth: line.strokeWidth(),
-        lineCap: line.lineCap(),
-        lineJoin: line.lineJoin(),
-    });
-    localStorage.setItem('strokes', JSON.stringify(savedStrokes));
-    console.log('Stroke pushed. Total strokes:', savedStrokes.length);
-}

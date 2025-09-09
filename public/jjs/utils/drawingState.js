@@ -1,5 +1,4 @@
-import { pushStrokeToLocalStorage } from "./drawingUtils.js";
-
+// public/jjs/utils/drawingState.js
 let isDrawing = false;
 let currentLine = null;
 
@@ -21,7 +20,6 @@ export function getCurrentLine() {
 
 export function endDrawing() {
     if (!isDrawing || !currentLine) return;
-    pushStrokeToLocalStorage(currentLine);
 
     isDrawing = false;
     currentLine = null;

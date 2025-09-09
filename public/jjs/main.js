@@ -4,18 +4,21 @@ import { setZoomControls } from "./zoom.js";
 import { resetIdleTimer } from "./utils/timer.js";
 import { createMouseEvents } from "./events/mouseEvents.js";
 import { createTouchEvents } from "./events/touchEvents.js";
+import { getDrawingState } from "./utils/drawingState.js";
 
 import { loadStrokesFromDB } from "./utils/drawingUtils.js";
 
 const { stage, drawLayer, pageGroup } = createStage();
 const { previewCircle } = setStrokeControls(drawLayer);
 
-loadStrokesFromDB(pageGroup, drawLayer);
-
-// let lastStrokeId = await loadStrokesFromDB(pageGroup, drawLayer, { useCache: false });
-// setInterval(async () => {
-//     lastStrokeId = await loadStrokesFromDB(pageGroup, drawLayer, { startAt: lastStrokeId + 1 });
-// }, 500);
+let lastStrokeId = await loadStrokesFromDB(pageGroup, drawLayer);
+setInterval(async () => {
+    if (!getDrawingState()) {
+        lastStrokeId = await loadStrokesFromDB(pageGroup, drawLayer, {
+            startAt: lastStrokeId + 1
+        });
+    }
+}, 500)
 
 setZoomControls(stage);
 createMouseEvents(stage, drawLayer, pageGroup, previewCircle);
