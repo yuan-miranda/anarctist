@@ -45,7 +45,6 @@ function zoomStageAtCenter(stage, scaleFactor) {
         y: pointer.y - mousePointTo.y * newScale
     });
 
-    stage.batchDraw();
     saveStagePositionAndScale(stage);
 }
 

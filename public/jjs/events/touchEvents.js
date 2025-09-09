@@ -37,8 +37,6 @@ export function createTouchEvents(stage, drawLayer, pageGroup, previewCircle) {
         if (getDrawingState() && getCurrentLine()) {
             getCurrentLine().points(getCurrentLine().points().concat([pos.x, pos.y]));
         }
-
-        drawLayer.batchDraw();
     });
 
     stage.on('touchend', (e) => {
@@ -75,7 +73,6 @@ export function createTouchEvents(stage, drawLayer, pageGroup, previewCircle) {
                 y: stage.y() + dy
             });
 
-            stage.batchDraw();
             lastCenter = center;
         }
     }, { passive: false });

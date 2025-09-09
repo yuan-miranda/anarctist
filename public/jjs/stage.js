@@ -13,7 +13,7 @@ export function createStage() {
         height: window.innerHeight
     });
 
-    const drawLayer = new Konva.Layer();
+    const drawLayer = new Konva.FastLayer();
     stage.add(drawLayer);
 
     const pageGroup = new Konva.Group({

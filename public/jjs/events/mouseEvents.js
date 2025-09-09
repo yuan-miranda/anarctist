@@ -30,8 +30,6 @@ export function createMouseEvents(stage, drawLayer, pageGroup, previewCircle) {
         if (getDrawingState() && getCurrentLine()) {
             getCurrentLine().points(getCurrentLine().points().concat([pos.x, pos.y]));
         }
-
-        drawLayer.batchDraw();
     });
 
     stage.on('mouseup', (e) => {
