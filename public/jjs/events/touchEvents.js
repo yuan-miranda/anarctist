@@ -2,6 +2,7 @@ import { getPointerPos } from "../utils/drawingUtils.js";
 import { createKonvaLine } from "../stroke.js";
 import { setDrawingState, getDrawingState, setCurrentLine, getCurrentLine, endDrawing } from "../utils/drawingState.js";
 import { saveStagePositionAndScale } from "../zoom.js";
+import { scheduleSave } from "../utils/save.js";
 
 let isTwoFingerPanning = false;
 let lastCenter = null;
@@ -40,7 +41,11 @@ export function createTouchEvents(stage, drawLayer, pageGroup, previewCircle) {
     });
 
     stage.on('touchend', (e) => {
-        if (e.evt.type === 'touchend') endDrawing();
+        if (e.evt.type === 'touchend') {
+            const line = getCurrentLine();
+            if (line) scheduleSave(line);
+            endDrawing();
+        }
     });
 
     stage.on('touchcancel', endDrawing);

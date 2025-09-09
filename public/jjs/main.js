@@ -12,6 +12,11 @@ const { previewCircle } = setStrokeControls(drawLayer);
 
 loadStrokesFromDB(pageGroup, drawLayer);
 
+// let lastStrokeId = await loadStrokesFromDB(pageGroup, drawLayer, { useCache: false });
+// setInterval(async () => {
+//     lastStrokeId = await loadStrokesFromDB(pageGroup, drawLayer, { startAt: lastStrokeId + 1 });
+// }, 500);
+
 setZoomControls(stage);
 createMouseEvents(stage, drawLayer, pageGroup, previewCircle);
 createTouchEvents(stage, drawLayer, pageGroup, previewCircle);
