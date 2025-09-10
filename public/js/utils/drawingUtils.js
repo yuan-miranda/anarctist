@@ -2,8 +2,6 @@
 import { PAGE_WIDTH } from '../stage.js';
 import { PAGE_HEIGHT } from '../stage.js';
 
-const drawnStrokes = new Set();
-
 export function compressPoints(pointsArr) {
     // [10,20,30,40] -> "10,20;30,40"
     const pairs = [];
@@ -117,15 +115,19 @@ export async function loadStrokesFromDB(stage, pageGroup) {
             return 0;
         }
 
-        // strokes fetched
-        const newStrokes = (data.strokes || []).filter(stroke => {
-            return !drawnStrokes.has(stroke.id);
-        }).map(stroke => ({
-            ...stroke,
-            points: decompressPoints(stroke.points),
-        }));
+        const existingIds = new Set(
+            pageGroup.getChildren()
+                .filter(c => c.className === 'Line')
+                .map(c => parseInt(c.id()))
+        );
 
-        // then draw them
+        const newStrokes = (data.strokes || [])
+            .filter(stroke => !existingIds.has(stroke.id))
+            .map(stroke => ({
+                ...stroke,
+                points: decompressPoints(stroke.points),
+            }));
+
         newStrokes.forEach((s) => {
             const line = new Konva.Line({
                 id: s.id.toString(),
@@ -137,14 +139,12 @@ export async function loadStrokesFromDB(stage, pageGroup) {
                 globalCompositeOperation: 'source-over',
             });
             pageGroup.add(line);
-            drawnStrokes.add(s.id);
         });
 
         pageGroup.getChildren().forEach(line => {
             if (line.className !== 'Line') return;
             const strokeBox = getStrokeBoundingBox(line);
             if (!isStrokeInViewport(strokeBox, viewport, keepPadding)) {
-                drawnStrokes.delete(parseInt(line.id()));
                 line.destroy();
             }
         });
