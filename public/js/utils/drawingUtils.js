@@ -97,8 +97,8 @@ function isStrokeInViewport(strokeBox, viewport, padding) {
 export async function loadStrokesFromDB(stage, pageGroup) {
     try {
         const viewport = getViewportBoundingBox(stage);
-        const loadPadding = 200;
-        const keepPadding = 400;
+        const loadPadding = 500;
+        const keepPadding = 300;
 
         const params = new URLSearchParams({
             minX: viewport.x - loadPadding,
