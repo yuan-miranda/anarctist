@@ -1,4 +1,4 @@
-// api/migrate_bounds.ts
+// api/migration.ts
 // update canvas_strokes table to add bounding box columns to new and existing rows
 import { createClient } from "@libsql/client";
 import { VercelRequest, VercelResponse } from "@vercel/node";
@@ -25,13 +25,10 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     }
 
     try {
-        await client.execute(`
-            ALTER TABLE canvas_strokes
-            ADD COLUMN IF NOT EXISTS minX REAL,
-            ADD COLUMN IF NOT EXISTS minY REAL,
-            ADD COLUMN IF NOT EXISTS maxX REAL,
-            ADD COLUMN IF NOT EXISTS maxY REAL;
-        `);
+        await client.execute(`ALTER TABLE canvas_strokes ADD COLUMN IF NOT EXISTS minX REAL;`);
+        await client.execute(`ALTER TABLE canvas_strokes ADD COLUMN IF NOT EXISTS minY REAL;`);
+        await client.execute(`ALTER TABLE canvas_strokes ADD COLUMN IF NOT EXISTS maxX REAL;`);
+        await client.execute(`ALTER TABLE canvas_strokes ADD COLUMN IF NOT EXISTS maxY REAL;`);
 
         const result = await client.execute(`SELECT id, path FROM canvas_strokes`);
         for (const row of result.rows) {
