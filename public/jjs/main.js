@@ -1,3 +1,4 @@
+// public/jjs/main.js
 import { createStage } from "./stage.js";
 import { setStrokeControls } from "./stroke.js";
 import { setZoomControls } from "./zoom.js";
@@ -8,17 +9,22 @@ import { getDrawingState } from "./utils/drawingState.js";
 
 import { loadStrokesFromDB } from "./utils/drawingUtils.js";
 
+const loadingOverlay = document.getElementById('loadingOverlay');
+
 const { stage, drawLayer, pageGroup } = createStage();
 const { previewCircle } = setStrokeControls(drawLayer);
 
 let lastStrokeId = await loadStrokesFromDB(pageGroup, drawLayer);
+if (loadingOverlay) loadingOverlay.style.display = 'none';
+
+// auto fetch new strokes every second
 setInterval(async () => {
     if (!getDrawingState()) {
         lastStrokeId = await loadStrokesFromDB(pageGroup, drawLayer, {
             startAt: lastStrokeId + 1
         });
     }
-}, 500)
+}, 1000)
 
 setZoomControls(stage);
 createMouseEvents(stage, drawLayer, pageGroup, previewCircle);
