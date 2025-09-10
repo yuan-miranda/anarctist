@@ -72,35 +72,41 @@ function getViewportBoundingBox(stage) {
     };
 }
 
-export function pruneOffscreenStrokes(stage, pageGroup) {
-    const viewport = getViewportBoundingBox(stage);
-    const padding = 1000;
+function getStrokeBoundingBox(stroke) {
+    const points = stroke.points();
+    let minX = Infinity, minY = Infinity;
+    let maxX = -Infinity, maxY = -Infinity;
+    for (let i = 0; i < points.length; i += 2)  {
+        const x = points[i];
+        const y = points[i + 1];
+        if (x < minX) minX = x;
+        if (y < minY) minY = y;
+        if (x > maxX) maxX = x;
+        if (y > maxY) maxY = y;
+    }
+    return { minX, minY, maxX, maxY };
+}
 
-    pageGroup.find('Line').forEach(line => {
-        const box = line.getClientRect();
-
-        const outside =
-            box.x > viewport.x + viewport.width + padding ||
-            box.x + box.width < viewport.x - padding ||
-            box.y > viewport.y + viewport.height + padding ||
-            box.y + box.height < viewport.y - padding;
-
-        if (outside) {
-            drawnStrokes.delete(parseInt(line.id()));
-            line.destroy();
-        }
-    });
+function isStrokeInViewport(strokeBox, viewport, padding) {
+    return !(
+        strokeBox.maxX < viewport.x - padding ||
+        strokeBox.minX > viewport.x + viewport.width + padding ||
+        strokeBox.maxY < viewport.y - padding ||
+        strokeBox.minY > viewport.y + viewport.height + padding
+    )
 }
 
 export async function loadStrokesFromDB(stage, pageGroup) {
     try {
         const viewport = getViewportBoundingBox(stage);
-        const padding = 200;
+        const loadPadding = 200;
+        const keepPadding = 400;
+
         const params = new URLSearchParams({
-            minX: viewport.x - padding,
-            minY: viewport.y - padding,
-            maxX: viewport.x + viewport.width + padding,
-            maxY: viewport.y + viewport.height + padding,
+            minX: viewport.x - loadPadding,
+            minY: viewport.y - loadPadding,
+            maxX: viewport.x + viewport.width + loadPadding,
+            maxY: viewport.y + viewport.height + loadPadding,
         });
 
         const response = await fetch(`/api/load_strokes?${params.toString()}`);
@@ -132,6 +138,15 @@ export async function loadStrokesFromDB(stage, pageGroup) {
             });
             pageGroup.add(line);
             drawnStrokes.add(s.id);
+        });
+
+        pageGroup.getChildren().forEach(line => {
+            if (line.className !== 'Line') return;
+            const strokeBox = getStrokeBoundingBox(line);
+            if (!isStrokeInViewport(strokeBox, viewport, keepPadding)) {
+                drawnStrokes.delete(parseInt(line.id()));
+                line.destroy();
+            }
         });
 
         return newStrokes.length;
