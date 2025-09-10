@@ -99,7 +99,7 @@ export async function loadStrokesFromDB(stage, pageGroup) {
 
         const existingMap = new Map(
             pageGroup.getChildren()
-                .filter(c => c.className === 'Line')
+                .filter(c => c.className === 'Line' && c.id())
                 .map(c => [c.id(), c])
         );
 
