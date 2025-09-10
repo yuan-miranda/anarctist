@@ -90,10 +90,12 @@ export async function loadStrokesFromDB(stage, pageGroup) {
             return 0;
         }
 
-        const strokesFromDB = (data.strokes || []).map(stroke => ({
-            ...stroke,
-            points: decompressPoints(stroke.points),
-        }));
+        const strokesFromDB = (data.strokes || [])
+            .sort((a, b) => a.id - b.id)
+            .map(stroke => ({
+                ...stroke,
+                points: decompressPoints(stroke.points),
+            }));
 
         const existingMap = new Map(
             pageGroup.getChildren()
@@ -126,6 +128,10 @@ export async function loadStrokesFromDB(stage, pageGroup) {
         existingMap.forEach(line => {
             line.destroy();
         });
+
+        pageGroup.getChildren()
+            .sort((a, b) => parseInt(a.id()) - parseInt(b.id()))
+            .forEach((child, i) => child.zIndex(i));
 
         return strokesFromDB.length;
     } catch (e) {
