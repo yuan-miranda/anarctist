@@ -19,12 +19,23 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         return res.status(405).json({ error: 'Method Not Allowed' });
     }
 
-    const startAt = parseInt(req.query.startAt as string, 10) || 0;
+    const minX = parseFloat(req.query.minX as string);
+    const minY = parseFloat(req.query.minY as string);
+    const maxX = parseFloat(req.query.maxX as string);
+    const maxY = parseFloat(req.query.maxY as string);
+
+    if (isNaN(minX) || isNaN(minY) || isNaN(maxX) || isNaN(maxY)) {
+        return res.status(400).json({ error: 'Invalid or missing bounding box parameters' });
+    }
 
     try {
         const result = await client.execute({
-            sql: 'SELECT * FROM canvas_strokes WHERE id >= ? ORDER BY created_at ASC',
-            args: [startAt],
+            sql: `
+                SELECT * FROM canvas_strokes
+                WHERE maxX >= ? AND minX <= ? AND maxY >= ? AND minY <= ?    
+                ORDER BY created_at ASC
+            `,
+            args: [minX, maxX, minY, maxY],
         });
 
         const strokes = result.rows.map((row: any) => {

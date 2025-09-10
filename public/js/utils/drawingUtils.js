@@ -1,4 +1,6 @@
 // public/js/utils/drawingUtils.js
+const drawnStrokes = new Set();
+
 export function compressPoints(pointsArr) {
     // [10,20,30,40] -> "10,20;30,40"
     const pairs = [];
@@ -49,32 +51,64 @@ export async function saveStrokesToDB(line) {
     }
 }
 
-export async function loadStrokesFromDB(pageGroup, drawLayer, { useCache = true, startAt = 0 } = {}) {
-    try {
-        const cachedLastStrokeId = parseInt(localStorage.getItem('lastStrokeId'), 10) || 0;
-        const effectiveStartAt = useCache ? startAt : 0;
+function getViewportBoundingBox(stage) {
+    const scale = stage.scaleX();
+    const x = -stage.x() / scale;
+    const y = -stage.y() / scale;
+    const width = stage.width() / scale;
+    const height = stage.height() / scale;
+    return { x, y, width, height };
+}
 
-        const params = new URLSearchParams({ startAt: effectiveStartAt });
+export function pruneOffscreenStrokes(stage, pageGroup) {
+    const viewport = getViewportBoundingBox(stage);
+
+    pageGroup.find('Line').forEach(line => {
+        const box = line.getClientRect();
+        const intersects = !(
+            box.x > viewport.x + viewport.width ||
+            box.x + box.width < viewport.x ||
+            box.y > viewport.y + viewport.height ||
+            box.y + box.height < viewport.y
+        );
+        if (!intersects) {
+            drawnStrokes.delete(parseInt(line.id()));
+            line.destroy();
+        }
+    });
+}
+
+
+export async function loadStrokesFromDB(stage, pageGroup) {
+    try {
+        const viewport = getViewportBoundingBox(stage);
+        const params = new URLSearchParams({
+            minX: viewport.x,
+            minY: viewport.y,
+            maxX: viewport.x + viewport.width,
+            maxY: viewport.y + viewport.height,
+        });
+        
         const response = await fetch(`/api/load_strokes?${params.toString()}`);
         const data = await response.json();
 
         if (!response.ok) {
             console.error(data.error);
-            return useCache ? cachedLastStrokeId : 0;
+            return 0;
         }
 
         // strokes fetched
-        const newStrokes = (data.strokes || []).map(stroke => ({
+        const newStrokes = (data.strokes || []).filter(stroke => {
+            return !drawnStrokes.has(stroke.id);
+        }).map(stroke => ({
             ...stroke,
             points: decompressPoints(stroke.points),
         }));
 
-        const lastStrokeId = newStrokes.length > 0 ? newStrokes[newStrokes.length - 1].id : (useCache ? cachedLastStrokeId : 0);
-        localStorage.setItem('lastStrokeId', lastStrokeId);
-
         // then draw them
         newStrokes.forEach((s) => {
             const line = new Konva.Line({
+                id: s.id.toString(),
                 points: s.points,
                 stroke: s.stroke,
                 strokeWidth: s.strokeWidth,
@@ -83,11 +117,12 @@ export async function loadStrokesFromDB(pageGroup, drawLayer, { useCache = true,
                 globalCompositeOperation: 'source-over',
             });
             pageGroup.add(line);
+            drawnStrokes.add(s.id);
         });
 
-        return lastStrokeId;
+        return newStrokes.length;
     } catch (e) {
         console.error(e);
-        return useCache ? startAt : 0;
+        return 0;
     }
 }

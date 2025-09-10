@@ -7,22 +7,22 @@ import { createMouseEvents } from "./events/mouseEvents.js";
 import { createTouchEvents } from "./events/touchEvents.js";
 import { getDrawingState } from "./utils/drawingState.js";
 
-import { loadStrokesFromDB } from "./utils/drawingUtils.js";
+import { loadStrokesFromDB, pruneOffscreenStrokes } from "./utils/drawingUtils.js";
 
 const loadingOverlay = document.getElementById('loadingOverlay');
 
 const { stage, drawLayer, pageGroup } = createStage();
 const { previewCircle } = setStrokeControls(drawLayer);
 
-let lastStrokeId = await loadStrokesFromDB(pageGroup, drawLayer);
+await loadStrokesFromDB(stage, pageGroup);
+pruneOffscreenStrokes(stage, pageGroup);
 if (loadingOverlay) loadingOverlay.style.display = 'none';
 
 // auto fetch new strokes every second
 setInterval(async () => {
     if (!getDrawingState()) {
-        lastStrokeId = await loadStrokesFromDB(pageGroup, drawLayer, {
-            startAt: lastStrokeId + 1
-        });
+        await loadStrokesFromDB(stage, pageGroup);
+        pruneOffscreenStrokes(stage, pageGroup);
     }
 }, 1000)
 

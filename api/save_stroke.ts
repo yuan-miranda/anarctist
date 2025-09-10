@@ -18,6 +18,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     if (req.method !== 'POST') {
         return res.status(405).json({ error: 'Method Not Allowed' });
     }
+    res.status(200).json({ message: 'Canvas stroke saved successfully' });
 
     const { points, stroke, strokeWidth } = req.body;
 
@@ -38,7 +39,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         });
 
         const id = result.rows[0].id;
-        res.status(200).json({ message: 'Canvas stroke saved successfully', id });
+        // res.status(200).json({ message: 'Canvas stroke saved successfully', id });
     } catch (error) {
         console.error('Error saving canvas stroke:', error);
         res.status(500).json({ error: 'Failed to save canvas stroke' });
