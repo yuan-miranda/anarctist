@@ -24,7 +24,7 @@ setInterval(async () => {
         await loadStrokesFromDB(stage, pageGroup);
         pruneOffscreenStrokes(stage, pageGroup);
     }
-}, 1000)
+}, 2000)
 
 setZoomControls(stage);
 createMouseEvents(stage, drawLayer, pageGroup, previewCircle);

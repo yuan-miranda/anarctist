@@ -93,11 +93,12 @@ export function pruneOffscreenStrokes(stage, pageGroup) {
 export async function loadStrokesFromDB(stage, pageGroup) {
     try {
         const viewport = getViewportBoundingBox(stage);
+        const padding = 200;
         const params = new URLSearchParams({
-            minX: viewport.x,
-            minY: viewport.y,
-            maxX: viewport.x + viewport.width,
-            maxY: viewport.y + viewport.height,
+            minX: viewport.x - padding,
+            minY: viewport.y - padding,
+            maxX: viewport.x + viewport.width + padding,
+            maxY: viewport.y + viewport.height + padding,
         });
 
         const response = await fetch(`/api/load_strokes?${params.toString()}`);
