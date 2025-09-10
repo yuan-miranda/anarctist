@@ -18,7 +18,6 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     if (req.method !== 'POST') {
         return res.status(405).json({ error: 'Method Not Allowed' });
     }
-    res.status(200).json({ message: 'Canvas stroke saved successfully' });
 
     const { points, stroke, strokeWidth } = req.body;
 
@@ -29,17 +28,27 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     try {
         const pointsArray = decompressPoints(points);
 
+        let minX = Infinity, minY = Infinity;
+        let maxX = -Infinity, maxY = -Infinity;
+
+        for (const point of pointsArray) {
+            if (point.x < minX) minX = point.x;
+            if (point.y < minY) minY = point.y;
+            if (point.x > maxX) maxX = point.x;
+            if (point.y > maxY) maxY = point.y;
+        }
+
         const result = await client.execute({
             sql: `
-                INSERT INTO canvas_strokes (path, color, width)
-                VALUES (?, ?, ?)
+                INSERT INTO canvas_strokes (path, color, width, minX, minY, maxX, maxY)
+                VALUES (?, ?, ?, ?, ?, ?, ?)
                 RETURNING id
             `,
-            args: [JSON.stringify(pointsArray), stroke, strokeWidth]
+            args: [JSON.stringify(pointsArray), stroke, strokeWidth, minX, minY, maxX, maxY]
         });
 
         const id = result.rows[0].id;
-        // res.status(200).json({ message: 'Canvas stroke saved successfully', id });
+        res.status(200).json({ message: 'Canvas stroke saved successfully', id });
     } catch (error) {
         console.error('Error saving canvas stroke:', error);
         res.status(500).json({ error: 'Failed to save canvas stroke' });
