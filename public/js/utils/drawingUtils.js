@@ -1,4 +1,7 @@
 // public/js/utils/drawingUtils.js
+import { PAGE_WIDTH } from '../stage.js';
+import { PAGE_HEIGHT } from '../stage.js';
+
 const drawnStrokes = new Set();
 
 export function compressPoints(pointsArr) {
@@ -57,7 +60,16 @@ function getViewportBoundingBox(stage) {
     const y = -stage.y() / scale;
     const width = stage.width() / scale;
     const height = stage.height() / scale;
-    return { x, y, width, height };
+
+    const offsetX = PAGE_WIDTH / 2;
+    const offsetY = PAGE_HEIGHT / 2;
+
+    return {
+        x: x + offsetX,
+        y: y + offsetY,
+        width,
+        height
+    };
 }
 
 export function pruneOffscreenStrokes(stage, pageGroup) {
@@ -78,7 +90,6 @@ export function pruneOffscreenStrokes(stage, pageGroup) {
     });
 }
 
-
 export async function loadStrokesFromDB(stage, pageGroup) {
     try {
         const viewport = getViewportBoundingBox(stage);
@@ -88,7 +99,7 @@ export async function loadStrokesFromDB(stage, pageGroup) {
             maxX: viewport.x + viewport.width,
             maxY: viewport.y + viewport.height,
         });
-        
+
         const response = await fetch(`/api/load_strokes?${params.toString()}`);
         const data = await response.json();
 
