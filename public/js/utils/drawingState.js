@@ -1,4 +1,4 @@
-// public/jjs/utils/drawingState.js
+// public/js/utils/drawingState.js
 let isDrawing = false;
 let currentLine = null;
 

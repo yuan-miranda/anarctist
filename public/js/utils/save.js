@@ -1,3 +1,5 @@
+import { saveStrokesToDB } from "./drawingUtils.js";
+
 const strokeQueue = [];
 let isSaving = false;
 
@@ -6,15 +8,16 @@ async function queueSave() {
 
     isSaving = true;
     while (strokeQueue.length > 0) {
-        const stroke = strokeQueue.shift();
-        // await saveCanvasStrokes(stroke);
+        const line = strokeQueue.shift();
+        await saveStrokesToDB(line);
     }
     isSaving = false;
 }
 
-function scheduleSave(stroke) {
-    if (!stroke || stroke.path.length <= 1) return;
-    strokeQueue.push(stroke);
+function scheduleSave(line) {
+    if (!line || line.className !== 'Line') return;
+    if (line.points().length === 0) return;
+    strokeQueue.push(line);
     queueSave();
 }
 

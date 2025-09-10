@@ -1,14 +1,17 @@
 * {
-    box-sizing: border-box;
     margin: 0;
     padding: 0;
+    box-sizing: border-box;
+
+    -webkit-tap-highlight-color: transparent;
+    -webkit-touch-callout: none;
+    overscroll-behavior: none;
 }
 
 body {
-    overflow: hidden;
     font-family: Arial, Helvetica, sans-serif;
+    background: #f0f0f0;
     user-select: none;
-    touch-action: none;
 }
 
 h1 {
@@ -20,30 +23,26 @@ h1 {
     color: #333;
 }
 
-#canvas-container {
-    position: absolute;
-    left: 50%;
-    top: 50%;
-    transform: translate(-50%, -50%);
+img {
+    pointer-events: none;
 }
 
-#draw-canvas {
-    background: #fff;
-    border: 32px solid #ccc;
+.kursor--5,
+.kursorChild--5 {
+    transition: none !important;
 }
 
-.canvas-actions,
+.kursor--5.kursor--down {
+    width: 10px !important;
+    height: 10px !important;
+}
+
 .link-actions,
 .zoom-actions,
 .color-actions {
     position: fixed;
     margin: 1rem;
     z-index: 1;
-}
-
-.canvas-actions {
-    top: 10px;
-    right: 10px;
 }
 
 .link-actions {
@@ -65,31 +64,30 @@ h1 {
 .color-options {
     display: grid;
     grid-template-columns: repeat(2, auto);
-    gap: 0.4rem;
-    margin-top: 0.4rem;
+    gap: 0.1rem;
+    margin-top: 0.1rem;
 }
 
-.color-btn,
-#toggleCollapse,
-.color-btn,
-input[type="color"],
-#decreaseStrokeSize,
-#increaseStrokeSize,
-#strokeSize {
+.color-actions .color-btn,
+.color-actions #toggleCollapse,
+.color-actions input[type="color"],
+.color-actions #decreaseStrokeSize,
+.color-actions #increaseStrokeSize,
+.color-actions #strokeSize {
     width: 32px;
     height: 32px;
     padding: 0;
     border: 1px solid #ccc;
+    background-color: #fff;
     font-size: 1rem;
 
     display: flex;
     align-items: center;
     justify-content: center;
+    cursor: pointer;
 }
 
-.canvas-actions button,
-.zoom-actions button,
-.canvas-actions-minified button {
+.zoom-actions button {
     padding: 0.8rem 1rem;
     background: #fff;
     border: 1px solid #ccc;
@@ -97,13 +95,8 @@ input[type="color"],
     cursor: pointer;
 }
 
-.canvas-actions-minified {
-    display: none;
-}
-
 .color-btn.selected {
     border: 2px solid #333;
-    box-shadow: 0 0 0 2px white;
 }
 
 button:disabled {
@@ -115,12 +108,57 @@ button:disabled {
     display: none;
 }
 
-@media (max-width: 50rem) {
-    .canvas-actions>button {
-        display: none;
+#loadingOverlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(240, 240, 240, 0.95);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    z-index: 1;
+    font-size: 1.2rem;
+    color: #333;
+}
+
+#loadingOverlay .spinner {
+    width: 40px;
+    height: 40px;
+    border: 4px solid #ccc;
+    border-top: 4px solid #333;
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+    margin-bottom: 1rem;
+}
+
+@keyframes spin {
+    0% {
+        transform: rotate(0deg);
     }
 
-    .canvas-actions-minified {
-        display: block;
+    100% {
+        transform: rotate(360deg);
+    }
+}
+
+@media (max-width: 50rem) {
+
+    .color-actions .color-btn,
+    .color-actions #toggleCollapse,
+    .color-actions input[type="color"],
+    .color-actions #decreaseStrokeSize,
+    .color-actions #increaseStrokeSize,
+    .color-actions #strokeSize {
+        width: 24px;
+        height: 24px;
+        font-size: 0.8rem;
+    }
+
+    .color-actions img {
+        width: 24px;
+        height: 24px;
     }
 }

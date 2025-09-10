@@ -1,4 +1,4 @@
-// public/jjs/stroke.js
+// public/js/stroke.js
 const strokeConfig = {
     stroke: 'black',
     strokeWidth: 2,

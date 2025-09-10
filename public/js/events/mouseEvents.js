@@ -1,4 +1,4 @@
-// public/jjs/events/mouseEvents.js
+// public/js/events/mouseEvents.js
 import { getPointerPos } from "../utils/drawingUtils.js";
 import { createKonvaLine } from "../stroke.js";
 import { setDrawingState, getDrawingState, setCurrentLine, getCurrentLine, endDrawing } from "../utils/drawingState.js";

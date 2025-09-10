@@ -1,4 +1,4 @@
-// public/jjs/utils/drawingUtils.js
+// public/js/utils/drawingUtils.js
 export function compressPoints(pointsArr) {
     // [10,20,30,40] -> "10,20;30,40"
     const pairs = [];

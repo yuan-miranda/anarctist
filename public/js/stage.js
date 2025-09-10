@@ -1,4 +1,4 @@
-// public/jjs/stage.js
+// public/js/stage.js
 import { centerStage, centerStageOffset } from './utils/stageUtils.js';
 
 export const PAGE_WIDTH = 524288;

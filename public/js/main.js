@@ -1,31 +1,45 @@
-import { eventListeners } from './eventListeners.js';
-import { loadCanvasPosition, loadCanvasStrokes } from './canvas.js';
-import { applyZoom, updateZoomButtons, setZoomLevel } from './zoom.js';
+// public/js/main.js
+import { createStage } from "./stage.js";
+import { setStrokeControls } from "./stroke.js";
+import { setZoomControls } from "./zoom.js";
+import { resetIdleTimer } from "./utils/timer.js";
+import { createMouseEvents } from "./events/mouseEvents.js";
+import { createTouchEvents } from "./events/touchEvents.js";
+import { getDrawingState } from "./utils/drawingState.js";
 
-document.addEventListener('DOMContentLoaded', async () => {
-    const canvas = document.getElementById('draw-canvas');
-    const ctx = canvas.getContext('2d');
+import { loadStrokesFromDB } from "./utils/drawingUtils.js";
 
-    ctx.strokeStyle = '#000';
-    ctx.lineWidth = 2;
-    ctx.fillStyle = '#fff';
-    ctx.lineCap = 'round';
+const loadingOverlay = document.getElementById('loadingOverlay');
 
-    const storedZoom = localStorage.getItem('canvasZoomLevel');
-    if (storedZoom !== null) setZoomLevel(parseFloat(storedZoom));
+const { stage, drawLayer, pageGroup } = createStage();
+const { previewCircle } = setStrokeControls(drawLayer);
 
-    eventListeners(canvas, ctx);
-    loadCanvasPosition();
-    applyZoom(canvas);
-    updateZoomButtons();
+let lastStrokeId = await loadStrokesFromDB(pageGroup, drawLayer);
+if (loadingOverlay) loadingOverlay.style.display = 'none';
 
-    let lastStrokeId = await loadCanvasStrokes(canvas, ctx, { useCache: false });
+// auto fetch new strokes every second
+setInterval(async () => {
+    if (!getDrawingState()) {
+        lastStrokeId = await loadStrokesFromDB(pageGroup, drawLayer, {
+            startAt: lastStrokeId + 1
+        });
+    }
+}, 1000)
 
-    alert('The drawing phase has ended. The canvas is now read-only. You can still view the strokes but cannot draw anymore.');
+setZoomControls(stage);
+createMouseEvents(stage, drawLayer, pageGroup, previewCircle);
+createTouchEvents(stage, drawLayer, pageGroup, previewCircle);
 
-    setInterval(async () => {
-        if (!window._canvasDrawing) {
-            lastStrokeId = await loadCanvasStrokes(canvas, ctx, { startAt: lastStrokeId + 1 });
-        }
-    }, 10000000000);
+// idle timer
+resetIdleTimer();
+['mousemove', 'mousedown', 'keydown', 'touchstart', 'touchmove'].forEach(e => {
+    window.addEventListener(e, resetIdleTimer, { passive: true });
+});
+
+// prevent context menu on right click
+document.addEventListener('contextmenu', e => e.preventDefault());
+
+window.addEventListener('resize', () => {
+    stage.width(window.innerWidth);
+    stage.height(window.innerHeight);
 });

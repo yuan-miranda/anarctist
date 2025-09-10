@@ -10,34 +10,14 @@
 
 <body>
     <h1>Anarctist</h1>
-    <div id="canvas-container">
-        <canvas id="draw-canvas" width="8192" height="8192"></canvas>
-    </div>
+    <div id="container"></div>
 
-    <!-- canvas actions: Center and Save -->
-    <div class="canvas-actions">
-        <button id="centerCanvas" title="Center Canvas">Center Canvas</button>
-        <button id="saveCanvas" title="Save Canvas">Save Canvas</button>
-
-        <!-- minified version -->
-        <div class="canvas-actions-minified">
-            <button id="centerCanvasMin" title="Center Canvas">
-                <img src="media/icon/centerCanvas.svg" alt="Center Canvas" width="24" height="24">
-
-            </button>
-            <button id="saveCanvasMin" title="Save Canvas">
-                <img src="media/icon/saveCanvas.svg" alt="Save Canvas" width="24" height="24">
-            </button>
-        </div>
-    </div>
-
-    <!-- link actions: GitHub -->
     <div class="link-actions">
-        <a href="https://github.com/yuan-miranda/anarctist" target="_blank"><img src="media/icon/github-mark.svg"
-                alt="GitHub" width="32" height="32" title="GitHub Repository"></a>
+        <a href="https://github.com/yuan-miranda/crystel" target="_blank" aria-label="GitHub Repository">
+            <img src="media/icon/github-mark.svg" alt="GitHub" width="32" height="32" title="GitHub Repository">
+        </a>
     </div>
 
-    <!-- zoom actions: Zoom In and Zoom Out -->
     <div class="zoom-actions">
         <button id="zoomIn" title="Zoom In">
             <img src="media/icon/zoomIn.svg" alt="Zoom In" width="24" height="24">
@@ -45,11 +25,16 @@
         <button id="zoomOut" title="Zoom Out">
             <img src="media/icon/zoomOut.svg" alt="Zoom Out" width="24" height="24">
         </button>
+        <button id="resetZoom" title="Reset Zoom">
+            <img src="media/icon/resetZoom.svg" alt="Reset Zoom" width="24" height="24">
+        </button>
+        <button id="centerCanvas" title="Center Canvas">
+            <img src="media/icon/centerCanvas.svg" alt="Center Canvas" width="24" height="24">
+        </button>
     </div>
 
-    <!-- color actions: Toggle Collapse, Color Selection, Stroke Size -->
     <div class="color-actions">
-        <button id="toggleCollapse" style="background: #ffffff;" title="Toggle Collapse">
+        <button id="toggleCollapse" title="Toggle Collapse">
             <img id="collapseDown" src="media/icon/collapseDown.svg" alt="Collapse Down" style="display: block;"
                 width="32" height="32">
             <img id="collapseUp" src="media/icon/collapseUp.svg" alt="Collapse Up" style="display: none;" width="32"
@@ -61,7 +46,7 @@
             <button class="color-btn" style="background: #000000;" data-color="#000000" title="Black"
                 id="colorBtnDefault"></button>
             <button class="color-btn" id="eraserStroke" style="background: #ffffff;" data-color="#ffffff"
-                title="Eraser (White)">20</button>
+                title="Eraser (White)"></button>
 
             <button class="color-btn" style="background: #ff0000;" data-color="#ff0000" title="Red"></button>
             <button class="color-btn" style="background: #ff7f00;" data-color="#ff7f00" title="Orange"></button>
@@ -76,9 +61,16 @@
             <button id="decreaseStrokeSize" title="Decrease Stroke Width">-</button>
             <button id="increaseStrokeSize" title="Increase Stroke Width">+</button>
             <span id="strokeSize" title="Current Stroke Size"
-                style="display: inline-flex; align-items: center; justify-content: center;">2</span>
+                style="display: inline-flex; align-items: center; justify-content: center;"></span>
         </div>
     </div>
+
+    <div id="loadingOverlay">
+        <div class="spinner"></div>
+        <div class="loadingText">Loading...</div>
+    </div>
+
+    <script src="https://unpkg.com/konva@9/konva.min.js"></script>
     <script type="module" src="js/main.js"></script>
 </body>
 

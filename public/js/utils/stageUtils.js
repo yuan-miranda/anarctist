@@ -1,4 +1,4 @@
-// public/jjs/utils/stageUtils.js
+// public/js/utils/stageUtils.js
 export function centerStage(stage) {
     stage.position({
         x: stage.width() / 2,
