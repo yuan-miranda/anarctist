@@ -77,11 +77,12 @@ export function pruneOffscreenStrokes(stage, pageGroup) {
 
     pageGroup.find('Line').forEach(line => {
         const box = line.getClientRect();
+        const padding = 200;
         const intersects = !(
-            box.x > viewport.x + viewport.width ||
-            box.x + box.width < viewport.x ||
-            box.y > viewport.y + viewport.height ||
-            box.y + box.height < viewport.y
+            box.x > viewport.x + viewport.width + padding ||
+            box.x + box.width < viewport.x - padding ||
+            box.y > viewport.y + viewport.height + padding ||
+            box.y + box.height < viewport.y - padding
         );
         if (!intersects) {
             drawnStrokes.delete(parseInt(line.id()));
