@@ -15,14 +15,14 @@ const { stage, drawLayer, pageGroup } = createStage();
 const { previewCircle } = setStrokeControls(drawLayer);
 
 await loadStrokesFromDB(stage, pageGroup);
-setTimeout(() => pruneOffscreenStrokes(stage, pageGroup), 50);
+pruneOffscreenStrokes(stage, pageGroup);
 if (loadingOverlay) loadingOverlay.style.display = 'none';
 
 // auto fetch new strokes every second
 setInterval(async () => {
     if (!getDrawingState()) {
         await loadStrokesFromDB(stage, pageGroup);
-        setTimeout(() => pruneOffscreenStrokes(stage, pageGroup), 50);
+        pruneOffscreenStrokes(stage, pageGroup);
     }
 }, 2000)
 

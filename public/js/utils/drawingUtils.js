@@ -74,17 +74,18 @@ function getViewportBoundingBox(stage) {
 
 export function pruneOffscreenStrokes(stage, pageGroup) {
     const viewport = getViewportBoundingBox(stage);
+    const padding = 1000;
 
     pageGroup.find('Line').forEach(line => {
         const box = line.getClientRect();
-        const padding = 200;
-        const intersects = !(
+
+        const outside =
             box.x > viewport.x + viewport.width + padding ||
             box.x + box.width < viewport.x - padding ||
             box.y > viewport.y + viewport.height + padding ||
-            box.y + box.height < viewport.y - padding
-        );
-        if (!intersects) {
+            box.y + box.height < viewport.y - padding;
+
+        if (outside) {
             drawnStrokes.delete(parseInt(line.id()));
             line.destroy();
         }
