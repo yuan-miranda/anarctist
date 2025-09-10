@@ -25,10 +25,10 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     }
 
     try {
-        await client.execute(`ALTER TABLE canvas_strokes ADD COLUMN IF NOT EXISTS minX REAL;`);
-        await client.execute(`ALTER TABLE canvas_strokes ADD COLUMN IF NOT EXISTS minY REAL;`);
-        await client.execute(`ALTER TABLE canvas_strokes ADD COLUMN IF NOT EXISTS maxX REAL;`);
-        await client.execute(`ALTER TABLE canvas_strokes ADD COLUMN IF NOT EXISTS maxY REAL;`);
+        await client.execute(`ALTER TABLE canvas_strokes ADD COLUMN minX REAL;`);
+        await client.execute(`ALTER TABLE canvas_strokes ADD COLUMN minY REAL;`);
+        await client.execute(`ALTER TABLE canvas_strokes ADD COLUMN maxX REAL;`);
+        await client.execute(`ALTER TABLE canvas_strokes ADD COLUMN maxY REAL;`);
 
         const result = await client.execute(`SELECT id, path FROM canvas_strokes`);
         for (const row of result.rows) {
