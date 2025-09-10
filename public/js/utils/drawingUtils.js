@@ -70,35 +70,10 @@ function getViewportBoundingBox(stage) {
     };
 }
 
-function getStrokeBoundingBox(stroke) {
-    const points = stroke.points();
-    let minX = Infinity, minY = Infinity;
-    let maxX = -Infinity, maxY = -Infinity;
-    for (let i = 0; i < points.length; i += 2)  {
-        const x = points[i];
-        const y = points[i + 1];
-        if (x < minX) minX = x;
-        if (y < minY) minY = y;
-        if (x > maxX) maxX = x;
-        if (y > maxY) maxY = y;
-    }
-    return { minX, minY, maxX, maxY };
-}
-
-function isStrokeInViewport(strokeBox, viewport, padding) {
-    return !(
-        strokeBox.maxX < viewport.x - padding ||
-        strokeBox.minX > viewport.x + viewport.width + padding ||
-        strokeBox.maxY < viewport.y - padding ||
-        strokeBox.minY > viewport.y + viewport.height + padding
-    )
-}
-
 export async function loadStrokesFromDB(stage, pageGroup) {
     try {
         const viewport = getViewportBoundingBox(stage);
-        const loadPadding = 500;
-        const keepPadding = 300;
+        const loadPadding = 300;
 
         const params = new URLSearchParams({
             minX: viewport.x - loadPadding,
@@ -115,41 +90,44 @@ export async function loadStrokesFromDB(stage, pageGroup) {
             return 0;
         }
 
-        const existingIds = new Set(
+        const strokesFromDB = (data.strokes || []).map(stroke => ({
+            ...stroke,
+            points: decompressPoints(stroke.points),
+        }));
+
+        const existingMap = new Map(
             pageGroup.getChildren()
                 .filter(c => c.className === 'Line')
-                .map(c => parseInt(c.id()))
+                .map(c => [c.id(), c])
         );
 
-        const newStrokes = (data.strokes || [])
-            .filter(stroke => !existingIds.has(stroke.id))
-            .map(stroke => ({
-                ...stroke,
-                points: decompressPoints(stroke.points),
-            }));
-
-        newStrokes.forEach((s) => {
-            const line = new Konva.Line({
-                id: s.id.toString(),
-                points: s.points,
-                stroke: s.stroke,
-                strokeWidth: s.strokeWidth,
-                lineCap: 'round',
-                lineJoin: 'round',
-                globalCompositeOperation: 'source-over',
-            });
-            pageGroup.add(line);
-        });
-
-        pageGroup.getChildren().forEach(line => {
-            if (line.className !== 'Line') return;
-            const strokeBox = getStrokeBoundingBox(line);
-            if (!isStrokeInViewport(strokeBox, viewport, keepPadding)) {
-                line.destroy();
+        strokesFromDB.forEach(s => {
+            const id = s.id.toString();
+            if (existingMap.has(id)) {
+                const line = existingMap.get(id);
+                line.points(s.points);
+                line.stroke(s.stroke);
+                line.strokeWidth(s.strokeWidth);
+                existingMap.delete(id);
+            } else {
+                const line = new Konva.Line({
+                    id,
+                    points: s.points,
+                    stroke: s.stroke,
+                    strokeWidth: s.strokeWidth,
+                    lineCap: 'round',
+                    lineJoin: 'round',
+                    globalCompositeOperation: 'source-over',
+                });
+                pageGroup.add(line);
             }
         });
 
-        return newStrokes.length;
+        existingMap.forEach(line => {
+            line.destroy();
+        });
+
+        return strokesFromDB.length;
     } catch (e) {
         console.error(e);
         return 0;

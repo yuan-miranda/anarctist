@@ -22,7 +22,7 @@ setInterval(async () => {
     if (!getDrawingState()) {
         await loadStrokesFromDB(stage, pageGroup);
     }
-}, 5000)
+}, 3000)
 
 setZoomControls(stage);
 createMouseEvents(stage, drawLayer, pageGroup, previewCircle);
