@@ -100,11 +100,13 @@ export async function loadStrokesFromDB(stage, pageGroup) {
             return 0;
         }
 
-        const strokesFromDB = (data.strokes || [])
-            .sort((a, b) => a.id - b.id)
+        const strokesFromDB = (data.s || [])
+            .sort((a, b) => a.i - b.i)
             .map(stroke => ({
-                ...stroke,
-                points: decompressPoints(stroke.points),
+                id: stroke.i,
+                points: decompressPoints(stroke.p),
+                stroke: stroke.c,
+                strokeWidth: stroke.w,
             }));
 
         const existingMap = new Map(

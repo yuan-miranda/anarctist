@@ -53,16 +53,16 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         const strokes = result.rows.map((row: any) => {
             const pointStr = JSON.parse(row.path);
             return {
-                id: row.id,
-                points: compressPoints(pointStr),
-                stroke: row.color,
-                strokeWidth: row.width
+                i: row.id,
+                p: compressPoints(pointStr),
+                c: row.color,
+                w: row.width
             };
         });
 
         // cache header for 2 seconds, with stale-while-revalidate for 10 seconds
         res.setHeader('Cache-Control', 's-maxage=2, stale-while-revalidate=10');
-        res.status(200).json({ strokes });
+        res.status(200).json({ s: strokes });
     } catch (error) {
         console.error('Error loading canvas strokes:', error);
         res.status(500).json({ error: 'Failed to load canvas strokes' });
