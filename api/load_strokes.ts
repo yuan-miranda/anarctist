@@ -10,7 +10,7 @@ const client = createClient({
 function compressPoints(pointsArr: { x: number; y: number; }[]) {
     // "100,150;101,151" from [{x: 100, y: 150}, {x: 101, y: 151}]
     return pointsArr.map((point: { x: number; y: number; }) => {
-        return `${point.x},${point.y}`;
+        return `${point.x.toFixed(2)},${point.y.toFixed(2)}`;
     }).join(';');
 }
 
