@@ -14,13 +14,11 @@ const loadingOverlay = document.getElementById('loadingOverlay');
 const { stage, drawLayer, pageGroup } = createStage();
 const { previewCircle } = setStrokeControls(drawLayer);
 
-await loadStrokesFromDB(stage, pageGroup);
-if (loadingOverlay) loadingOverlay.style.display = 'none';
-
 // auto fetch new strokes every second
 setInterval(async () => {
     if (!getDrawingState()) {
         await loadStrokesFromDB(stage, pageGroup);
+        if (loadingOverlay.style.display !== 'none') loadingOverlay.style.display = 'none';
     }
 }, 3000)
 
