@@ -11,11 +11,21 @@ export function compressPoints(pointsArr) {
     return pairs.join(';');
 }
 
-export function decompressPoints(pointStr) {
-    // "10,20;30,40" -> [10,20,30,40]
-    return pointStr
-        .split(';')
-        .flatMap(pair => pair.split(',').map(Number));
+export function decompressPoints(pointStr, scale = 100) {
+    if (!pointStr) return [];
+
+    const pairs = pointStr.split(';');
+    let [x, y] = pairs[0].split(',').map(Number);
+    const points = [x / scale, y / scale];
+
+    for (let i = 1; i < pairs.length; i++) {
+        const [dx, dy] = pairs[i].split(',').map(Number);
+        x += dx;
+        y += dy;
+        points.push(x / scale, y / scale);
+    }
+
+    return points;
 }
 
 export function getPointerPos(stage, round = false) {

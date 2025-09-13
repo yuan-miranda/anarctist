@@ -7,11 +7,23 @@ const client = createClient({
     authToken: process.env.TURSO_AUTH_TOKEN!
 });
 
-function compressPoints(pointsArr: { x: number; y: number; }[]) {
-    // "100,150;101,151" from [{x: 100, y: 150}, {x: 101, y: 151}]
-    return pointsArr.map((point: { x: number; y: number; }) => {
-        return `${point.x.toFixed(2)},${point.y.toFixed(2)}`;
-    }).join(';');
+function compressPoints(pointsArr: { x: number; y: number; }[], scale = 100) {
+    // Delta + Scale compression
+    if (pointsArr.length === 0) return '';
+
+    let prevX = Math.round(pointsArr[0].x * scale);
+    let prevY = Math.round(pointsArr[0].y * scale);
+    const encoded: string[] = [`${prevX},${prevY}`];
+
+    for (let i = 1; i < pointsArr.length; i++) {
+        const x = Math.round(pointsArr[i].x * scale);
+        const y = Math.round(pointsArr[i].y * scale);
+        encoded.push(`${x - prevX},${y - prevY}`);
+        prevX = x;
+        prevY = y;
+    }
+
+    return encoded.join(';');
 }
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
