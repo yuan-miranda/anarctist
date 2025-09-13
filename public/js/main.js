@@ -23,8 +23,8 @@ setInterval(async () => {
 }, 3000)
 
 setZoomControls(stage);
-createMouseEvents(stage, drawLayer, pageGroup, previewCircle);
-createTouchEvents(stage, drawLayer, pageGroup, previewCircle);
+createMouseEvents(stage, pageGroup, previewCircle);
+createTouchEvents(stage, pageGroup, previewCircle);
 
 // idle timer
 resetIdleTimer();

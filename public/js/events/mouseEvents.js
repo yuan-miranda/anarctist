@@ -5,7 +5,7 @@ import { setDrawingState, getDrawingState, setCurrentLine, getCurrentLine, endDr
 import { saveStagePositionAndScale } from "../zoom.js";
 import { scheduleSave } from "../utils/save.js";
 
-export function createMouseEvents(stage, drawLayer, pageGroup, previewCircle) {
+export function createMouseEvents(stage, pageGroup, previewCircle) {
     stage.on('mousedown', (e) => {
         const pos = getPointerPos(stage);
         if (!pos) return;

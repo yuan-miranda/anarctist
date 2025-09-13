@@ -14,7 +14,7 @@ function getCenter(t1, t2) {
     };
 }
 
-export function createTouchEvents(stage, drawLayer, pageGroup, previewCircle) {
+export function createTouchEvents(stage, pageGroup, previewCircle) {
     // single-finger drawing
     stage.on('touchstart', (e) => {
         if (e.evt.touches.length > 1) return;
