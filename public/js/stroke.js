@@ -5,6 +5,7 @@ const strokeConfig = {
     globalCompositeOperation: 'source-over',
     isEraserMode: false,
     eraserStrokeWidth: 10,
+    canDraw: false
 };
 
 let previewCircle;
@@ -31,7 +32,7 @@ function updateStrokeSizes(delta) {
     updateStrokeLabel(strokeConfig.strokeWidth);
 
     const size = strokeConfig.isEraserMode ? strokeConfig.eraserStrokeWidth : strokeConfig.strokeWidth;
-    setStrokePreviewSize(size);
+    if (strokeConfig.canDraw) setStrokePreviewSize(size);
 }
 
 function setEraserState(state) {
@@ -44,7 +45,6 @@ function setEraserState(state) {
     } else if (strokeConfig.stroke === 'white') {
         strokeConfig.stroke = 'black';
         setStrokePreviewSize(strokeConfig.strokeWidth);
-        highlightSelectedColor(document.getElementById('colorBtnDefault'));
     }
 }
 
@@ -74,27 +74,39 @@ function toggleColorPicker() {
 }
 
 function highlightSelectedColor(selectedBtn) {
-    colorButtons.forEach(btn => btn.classList.remove('selected'));
-    if (selectedBtn) selectedBtn.classList.add('selected');
+    colorButtons.forEach(btn => { if (btn !== selectedBtn) btn.classList.remove('selected'); });
+    if (!selectedBtn) return;
+
+    const isSelected = selectedBtn.classList.contains('selected');
+    if (isSelected) {
+        selectedBtn.classList.remove('selected');
+        strokeConfig.canDraw = false;
+        strokeConfig.isEraserMode = false;
+        setStrokePreviewSize(0);
+    } else {
+        selectedBtn.classList.add('selected');
+        strokeConfig.canDraw = true;
+
+        strokeConfig.isEraserMode = selectedBtn === eraserStrokeLabel;
+        strokeConfig.stroke = strokeConfig.isEraserMode ? 'white' : selectedBtn.dataset.color;
+
+        const size = strokeConfig.isEraserMode ? strokeConfig.eraserStrokeWidth : strokeConfig.strokeWidth;
+        setStrokePreviewSize(size);
+    }
 }
 
 function bindColorEvents() {
-    highlightSelectedColor(document.getElementById('colorBtnDefault'));
 
     colorButtons.forEach(btn => {
         btn.addEventListener('click', () => {
             strokeConfig.stroke = btn.dataset.color;
-            setEraserState(btn.id === 'eraserStroke');
             highlightSelectedColor(btn);
-
-            if (!strokeConfig.isEraserMode) {
-                setStrokePreviewSize(strokeConfig.strokeWidth);
-            }
         });
     });
 
     customColorPicker.addEventListener('input', () => {
         strokeConfig.stroke = customColorPicker.value;
+        strokeConfig.canDraw = true;
         setEraserState(false);
         highlightSelectedColor(null);
         setStrokePreviewSize(strokeConfig.strokeWidth);
@@ -102,6 +114,7 @@ function bindColorEvents() {
 }
 
 export function createKonvaLine(pos) {
+    if (!strokeConfig.canDraw) return null;
     return new Konva.Line({
         stroke: strokeConfig.stroke,
         strokeWidth: strokeConfig.isEraserMode
@@ -115,7 +128,7 @@ export function createKonvaLine(pos) {
 }
 
 export function setStrokeControls(drawLayer) {
-    previewCircle = createStrokePreviewCircle(drawLayer, strokeConfig.strokeWidth);
+    previewCircle = createStrokePreviewCircle(drawLayer, 0);
 
     toggleColorPicker();
     bindColorEvents();

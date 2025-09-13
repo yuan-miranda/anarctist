@@ -24,6 +24,7 @@ export function createTouchEvents(stage, pageGroup, previewCircle) {
 
         setDrawingState(true);
         const line = createKonvaLine(pos);
+        if (!line) return;
         setCurrentLine(line);
         pageGroup.add(line);
     });

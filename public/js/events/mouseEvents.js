@@ -13,6 +13,7 @@ export function createMouseEvents(stage, pageGroup, previewCircle) {
         if (e.evt.button === 0) {
             setDrawingState(true);
             const line = createKonvaLine(pos);
+            if (!line) return;
             setCurrentLine(line);
             pageGroup.add(line);
         } else if (e.evt.button === 2) {
