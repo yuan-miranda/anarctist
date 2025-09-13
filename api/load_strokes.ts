@@ -44,8 +44,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
                 id: row.id,
                 points: compressPoints(pointStr),
                 stroke: row.color,
-                strokeWidth: row.width,
-                createdAt: row.created_at,
+                strokeWidth: row.width
             };
         });
 
