@@ -83,7 +83,7 @@ function getViewportBoundingBox(stage) {
 export async function loadStrokesFromDB(stage, pageGroup) {
     try {
         const viewport = getViewportBoundingBox(stage);
-        const loadPadding = 200;
+        const loadPadding = 100;
 
         const params = new URLSearchParams({
             minX: viewport.x - loadPadding,
